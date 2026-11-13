@@ -1,0 +1,16 @@
+/* ═════════════ Lanternfell: behind the app ═════════════ */
+.ab { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.ab-mist { position: absolute; left: 0; right: 0; bottom: 9vh; height: 20vh; overflow: hidden; }
+.ab-mist i { position: absolute; left: -25%; width: 150%; top: 0; bottom: 0; will-change: transform; animation: ab-drift 80s ease-in-out infinite alternate;
+  background: radial-gradient(ellipse 34% 46% at 26% 62%, rgb(207 200 255 / 0.13), transparent 72%), radial-gradient(ellipse 30% 40% at 68% 48%, rgb(207 200 255 / 0.1), transparent 72%); }
+.ab-mist i + i { animation-duration: 120s; animation-direction: alternate-reverse; bottom: -20%; opacity: 0.8; }
+@keyframes ab-drift { from { transform: translate3d(-6%, 0, 0); } to { transform: translate3d(6%, 0, 0); } }
+.ab-ff { opacity: 0.9; }
+.ab-ff i { top: auto !important; }
+html[data-motion='calm'] .ab-mist i, html[data-motion='still'] .ab-mist i { animation: none; }
+
+/* ═════════════ Lanternfell's card in the world picker (Settings) ═════════════ */
+.wp-art--scene { position: relative; aspect-ratio: 160 / 96; }
+.wp-art--scene .sc { position: absolute; inset: 0; width: 100%; height: 100%; aspect-ratio: auto; }
+.wp-art .sc .sc-l { height: 100%; }
+.wp-art--scene .sc-mist { animation: none; }

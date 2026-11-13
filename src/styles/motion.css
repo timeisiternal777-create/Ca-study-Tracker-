@@ -1,0 +1,66 @@
+/* ═════════════════════════ Motion and touch layer ═════════════════════════
+   Springs, the ripple under your finger, sparks, XP orbs, the living background and the page transition.
+   Everything here moves with transform or opacity only. */
+
+/* Real springs for new motion. Browsers without linear() keep a close cubic-bezier. */
+:root {
+  --spring-snap: cubic-bezier(0.34, 1.4, 0.64, 1);
+  --spring-soft: cubic-bezier(0.22, 1.12, 0.36, 1);
+  --spring-bounce: cubic-bezier(0.3, 1.9, 0.55, 1);
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    --spring-snap: linear(0, 0.05, 0.173, 0.331, 0.498, 0.654, 0.789, 0.897, 0.978, 1.032, 1.065, 1.08, 1.083, 1.076, 1.06, 1.045, 1.03, 1.017, 1.008, 1.002, 0.999, 0.998, 0.998, 0.999, 0.999, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+    --spring-soft: linear(0, 0.029, 0.101, 0.196, 0.302, 0.409, 0.511, 0.605, 0.687, 0.758, 0.817, 0.866, 0.905, 0.936, 0.958, 0.975, 0.987, 0.995, 1.001, 1.004, 1.006, 1.007, 1.007, 1.006, 1.005, 1.004, 1.003, 1.002, 1.002, 1.001, 1.001, 1, 1, 1, 1, 1);
+    --spring-bounce: linear(0, 0.109, 0.361, 0.656, 0.918, 1.107, 1.208, 1.232, 1.201, 1.139, 1.07, 1.011, 0.97, 0.949, 0.945, 0.953, 0.967, 0.983, 0.997, 1.006, 1.011, 1.012, 1.01, 1.007, 1.004, 1.002, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1);
+  }
+}
+
+/* Touch: no 300 ms tap delay anywhere, no long-press callout or text selection on controls. */
+a, summary, label, [role='button'], [role='tab'], [role='switch'], [role='checkbox'], [role='radio'], .card--interactive, .range, input[type='checkbox'], input[type='radio'] { touch-action: manipulation; }
+button, [role='button'], [role='tab'], .chip, .btn { -webkit-touch-callout: none; }
+
+/* ───────── Effects layer (see lib/fx.ts) ───────── */
+.fx-layer { position: fixed; inset: 0; z-index: 9000; pointer-events: none; overflow: hidden; contain: layout paint style; }
+.fx-ink { position: fixed; overflow: hidden; pointer-events: none; contain: paint; }
+.fx-ink > i { position: absolute; border-radius: 50%; transform: scale(0.08); will-change: transform, opacity;
+  background: radial-gradient(circle closest-side, rgb(var(--a-rgb) / 0.36), rgb(var(--a-rgb) / 0.17) 58%, transparent 100%); }
+.fx-ink[data-tone='light'] > i { background: radial-gradient(circle closest-side, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0.24) 58%, transparent 100%); }
+.fx-ink[data-tone='rose'] > i { background: radial-gradient(circle closest-side, rgb(var(--c-rose-rgb) / 0.36), rgb(var(--c-rose-rgb) / 0.16) 58%, transparent 100%); }
+.fx-spark { position: fixed; display: block; border-radius: 50%; will-change: transform, opacity; box-shadow: 0 0 8px 0 currentColor; }
+.fx-ring { position: fixed; display: block; width: 44px; height: 44px; border: 2px solid var(--a); border-radius: 50%; will-change: transform, opacity; }
+.fx-orb { position: fixed; left: 0; top: 0; width: 0; height: 0; will-change: transform; }
+.fx-orb > b { position: absolute; left: -7px; top: -7px; width: 14px; height: 14px; border-radius: 50%; will-change: transform, opacity;
+  background: radial-gradient(circle at 35% 32%, #fffbe0, var(--c-gold) 52%, #e39a12); box-shadow: 0 0 12px 3px rgb(var(--c-gold-rgb) / 0.55); }
+.xp-pill.fx-catch::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid rgb(var(--c-gold-rgb) / 0.8); pointer-events: none; animation: fx-catch 560ms var(--ease) both; }
+@keyframes fx-catch { from { transform: scale(0.92); opacity: 1; } to { transform: scale(1.22); opacity: 0; } }
+
+/* ───────── Background ─────────
+   The backdrop is static: painted once and free to keep on screen. An ambient animation across the whole screen keeps
+   the GPU busy forever, even when nothing is happening, so the glow only wakes up for a moment when you achieve
+   something (flare() in lib/fx.ts). It is a one-shot opacity animation, so it costs nothing while the app is idle. */
+.bg::after { content: ''; position: absolute; inset: 0; opacity: 0; pointer-events: none;
+  background:
+    radial-gradient(70% 62% at 50% 40%, rgb(var(--a-rgb) / 0.34), transparent 72%),
+    radial-gradient(48% 48% at 82% 74%, rgb(var(--a2-rgb) / 0.28), transparent 74%); }
+.bg.is-flare::after { animation: bg-flare 1500ms var(--ease) both; }
+@keyframes bg-flare { 0% { opacity: 0; transform: scale(0.94); } 22% { opacity: 1; } 100% { opacity: 0; transform: scale(1.06); } }
+
+/* ───────── Page transition (View Transitions API; browsers without it simply cut) ───────── */
+@supports (view-transition-name: none) {
+  .page { view-transition-name: page; }
+  ::view-transition { pointer-events: none; }
+  ::view-transition-group(root), ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+  ::view-transition-group(page) { animation-duration: 0s; }
+  ::view-transition-old(page) { z-index: 2; animation: vt-out 170ms var(--ease) both; }
+  ::view-transition-new(page) { animation: none; }
+  @keyframes vt-out { to { opacity: 0; transform: translate3d(0, -8px, 0) scale(0.996); } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg::after { animation: none; }
+  .fx-layer { display: none; }
+  ::view-transition-old(page) { animation: none; }
+}
+html[data-reduce-motion='true'] .bg::after { animation: none; }
+html[data-reduce-motion='true'] .fx-layer { display: none; }

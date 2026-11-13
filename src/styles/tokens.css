@@ -1,0 +1,93 @@
+/* ───────────────────────── Fonts (self-hosted, subset) ───────────────────────── */
+@font-face { font-family: 'Inter'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/inter-400.woff') format('woff'); }
+@font-face { font-family: 'Inter'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/inter-500.woff') format('woff'); }
+@font-face { font-family: 'Inter'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/inter-600.woff') format('woff'); }
+@font-face { font-family: 'Inter'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/inter-700.woff') format('woff'); }
+@font-face { font-family: 'Inter Display'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/inter-display-700.woff') format('woff'); }
+@font-face { font-family: 'Inter Display'; font-weight: 800; font-style: normal; font-display: swap; src: url('/fonts/inter-display-800.woff') format('woff'); }
+@font-face { font-family: 'Adventor'; font-weight: 700; font-style: normal; font-display: swap; src: url('/fonts/adventor-700.woff') format('woff'); }
+@font-face { font-family: 'Lora'; font-weight: 400 700; font-style: italic; font-display: swap; src: url('/fonts/lora-italic.woff') format('woff'); }
+
+/* ───────────────────────── Design tokens ───────────────────────── */
+:root {
+  color-scheme: dark;
+
+  /* Canvas & surfaces */
+  --bg-0: #060913;
+  --bg-1: #0b1022;
+  --bg-2: #111833;
+  --bg-3: #1a2347;
+  --surface: rgb(255 255 255 / 0.035);
+  --surface-2: rgb(255 255 255 / 0.06);
+  --surface-3: rgb(255 255 255 / 0.1);
+  --line: rgb(150 170 255 / 0.1);
+  --line-2: rgb(150 170 255 / 0.18);
+  --line-3: rgb(150 170 255 / 0.3);
+
+  /* Text */
+  --tx-0: #eef1fb;
+  --tx-1: #b6bfdc;
+  --tx-2: #8791b3;
+  --tx-3: #5b6689;
+
+  /* Subject hues (also used for status) */
+  --c-cyan: #4dd8e8;   --c-cyan-rgb: 77 216 232;
+  --c-violet: #9c8cff; --c-violet-rgb: 156 140 255;
+  --c-gold: #f9dc5c;   --c-gold-rgb: 249 220 92;
+  --c-ember: #ff6f3c;  --c-ember-rgb: 255 111 60;
+  --c-mint: #46e3a8;   --c-mint-rgb: 70 227 168;
+  --c-rose: #f45b8d;   --c-rose-rgb: 244 91 141;
+  --good: var(--c-mint); --good-rgb: var(--c-mint-rgb);
+  --warn: var(--c-gold); --warn-rgb: var(--c-gold-rgb);
+  --bad: var(--c-rose);  --bad-rgb: var(--c-rose-rgb);
+
+  /* Brand accent (themeable via [data-accent]) */
+  --a: #4dd8e8;  --a-rgb: 77 216 232;
+  --a2: #9c8cff; --a2-rgb: 156 140 255;
+  --on-a: #04121a;   /* text on top of --a */
+
+  /* Shape */
+  --r-xs: 8px; --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-xl: 28px; --r-full: 999px;
+  --shadow-card: inset 0 1px 0 rgb(255 255 255 / 0.05), 0 18px 40px -24px rgb(0 0 0 / 0.75);
+  --shadow-pop: 0 24px 64px -16px rgb(0 0 0 / 0.8), 0 0 0 1px var(--line-2);
+
+  /* Type */
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-num: 'Inter Display', 'Inter', system-ui, sans-serif;
+  --font-head: 'Adventor', 'Inter', system-ui, sans-serif;
+  --font-quote: 'Lora', Georgia, 'Times New Roman', serif;
+
+  /* Motion */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --t-fast: 140ms; --t-med: 260ms; --t-slow: 480ms;
+
+  /* Layout */
+  --sidebar-w: 252px;
+  --page-max: 1320px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --bottom-nav-h: 68px;
+  --topbar-h: 64px;
+}
+
+/* Brand accent themes */
+[data-accent='aurora'] { --a: #4dd8e8; --a-rgb: 77 216 232;  --a2: #9c8cff; --a2-rgb: 156 140 255; }
+[data-accent='violet'] { --a: #a597ff; --a-rgb: 165 151 255; --a2: #ff8bd0; --a2-rgb: 255 139 208; --on-a: #0d0a26; }
+[data-accent='ember']  { --a: #ff9a5c; --a-rgb: 255 154 92;  --a2: #ff5f8a; --a2-rgb: 255 95 138;  --on-a: #1f0c02; }
+[data-accent='gold']   { --a: #f6c75b; --a-rgb: 246 199 91;  --a2: #ff9a5c; --a2-rgb: 255 154 92;  --on-a: #1d1402; }
+[data-accent='mint']   { --a: #46e3a8; --a-rgb: 70 227 168;  --a2: #4dd8e8; --a2-rgb: 77 216 232;  --on-a: #03170f; }
+[data-accent='rose']   { --a: #ff6389; --a-rgb: 255 99 137;  --a2: #9c8cff; --a2-rgb: 156 140 255; --on-a: #230209; }
+
+/* Subject accent helpers: set --ac / --ac-rgb on any element */
+.acc-cyan   { --ac: var(--c-cyan);   --ac-rgb: var(--c-cyan-rgb); }
+.acc-violet { --ac: var(--c-violet); --ac-rgb: var(--c-violet-rgb); }
+.acc-gold   { --ac: var(--c-gold);   --ac-rgb: var(--c-gold-rgb); }
+.acc-ember  { --ac: var(--c-ember);  --ac-rgb: var(--c-ember-rgb); }
+.acc-mint   { --ac: var(--c-mint);   --ac-rgb: var(--c-mint-rgb); }
+.acc-rose   { --ac: var(--c-rose);   --ac-rgb: var(--c-rose-rgb); }
+.acc-brand  { --ac: var(--a);        --ac-rgb: var(--a-rgb); }
+.acc-good   { --ac: var(--c-mint);   --ac-rgb: var(--c-mint-rgb); }
+.acc-warn   { --ac: var(--c-gold);   --ac-rgb: var(--c-gold-rgb); }
+.acc-bad    { --ac: var(--c-rose);   --ac-rgb: var(--c-rose-rgb); }

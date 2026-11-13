@@ -1,0 +1,78 @@
+/* Blip, the study radar mascot. Motion is transform and opacity only. */
+.blip { display: inline-block; flex: none; line-height: 0; overflow: visible; }
+.blip svg { display: block; overflow: visible; }
+
+.blip-float { animation: blip-float 3.6s ease-in-out infinite; }
+.blip-shadow { transform-origin: 60px 113px; animation: blip-shadow 3.6s ease-in-out infinite; }
+.blip-body { transform-origin: 60px 103px; animation: blip-breathe 3.6s ease-in-out infinite; }
+.blip-ant { transform-origin: 60px 30px; animation: blip-sway 3.1s ease-in-out infinite; }
+.blip-ping { transform-origin: 65.1px 6.3px; opacity: 0; animation: blip-ping 2.8s ease-out infinite; }
+.blip-ping.b { animation-delay: 1.4s; }
+.blip-eye { transform-box: fill-box; transform-origin: center; animation: blip-blink 5.8s infinite; }
+.blip-eyes { transition: transform 360ms var(--ease); }
+.blip-arm { transition: transform 520ms var(--ease-spring); }
+.blip-arm.l { transform-origin: 22px 64px; }
+.blip-arm.r { transform-origin: 98px 64px; }
+
+@keyframes blip-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3.4px); } }
+@keyframes blip-shadow { 0%, 100% { transform: scale(1); opacity: .34; } 50% { transform: scale(.9); opacity: .24; } }
+@keyframes blip-breathe { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.014, .986); } }
+@keyframes blip-sway { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(5deg); } }
+@keyframes blip-ping { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(3.5); opacity: 0; } }
+@keyframes blip-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+
+/* poses */
+.blip--wave .blip-arm.r { transform: rotate(-128deg); animation: blip-wave 0.9s ease-in-out infinite; }
+.blip--cheer .blip-arm.l { transform: rotate(142deg); animation: blip-cheer-l 0.7s ease-in-out infinite; }
+.blip--cheer .blip-arm.r { transform: rotate(-142deg); animation: blip-cheer-r 0.7s ease-in-out infinite; }
+.blip--cheer .blip-float { animation: blip-hop 0.7s var(--ease) infinite; }
+.blip-hand { transform-origin: 102.4px 84px; animation: blip-tap 2.4s ease-in-out infinite; }
+@keyframes blip-tap { 0%, 100% { transform: rotate(0deg); } 50% { transform: rotate(-4.5deg); } }
+.blip--think .blip-ant { animation-duration: 4.4s; }
+.blip--wow .blip-arm.l { transform: rotate(78deg); }
+.blip--wow .blip-arm.r { transform: rotate(-78deg); }
+.blip--worry .blip-arm.l { transform: rotate(-22deg); }
+.blip--worry .blip-arm.r { transform: rotate(22deg); }
+.blip--worry .blip-body { animation: blip-shiver 0.5s linear infinite; }
+.blip--proud .blip-arm.l { transform: rotate(38deg); }
+.blip--proud .blip-arm.r { transform: rotate(-38deg); }
+.blip--proud .blip-body { transform: scale(1.03, 1.03); animation: none; }
+.blip--sleepy .blip-ant { transform: rotate(-34deg); animation: none; }
+.blip--sleepy .blip-ping { display: none; }
+.blip--sleepy .blip-bulb { opacity: .45; }
+.blip--sleepy .blip-float { animation-duration: 6s; }
+.blip--sleepy .blip-body { animation-duration: 6s; }
+.blip--sleepy .blip-snore { transform-box: fill-box; transform-origin: center; animation: blip-snore 6s ease-in-out infinite; }
+
+@keyframes blip-wave { 0%, 100% { transform: rotate(-112deg); } 50% { transform: rotate(-146deg); } }
+@keyframes blip-cheer-l { 0%, 100% { transform: rotate(128deg); } 50% { transform: rotate(156deg); } }
+@keyframes blip-cheer-r { 0%, 100% { transform: rotate(-128deg); } 50% { transform: rotate(-156deg); } }
+@keyframes blip-hop { 0%, 100% { transform: translateY(0); } 40% { transform: translateY(-8px); } }
+@keyframes blip-shiver { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-.7px); } 75% { transform: translateX(.7px); } }
+@keyframes blip-snore { 0%, 100% { transform: scale(.8); } 50% { transform: scale(1.35); } }
+
+/* extras */
+.blip-sparks path { transform-box: fill-box; transform-origin: center; animation: blip-twinkle 1.4s ease-in-out infinite; }
+.blip-sparks .s2 { animation-delay: .35s; } .blip-sparks .s3 { animation-delay: .7s; }
+@keyframes blip-twinkle { 0%, 100% { transform: scale(.55); opacity: .45; } 50% { transform: scale(1.1); opacity: 1; } }
+.blip-zzz path { animation: blip-z 3.4s ease-in-out infinite; }
+.blip-zzz .z2 { animation-delay: 1.2s; }
+@keyframes blip-z { 0% { transform: translateY(6px); opacity: 0; } 30%, 70% { opacity: 1; } 100% { transform: translateY(-6px); opacity: 0; } }
+.blip-drop { transform-box: fill-box; transform-origin: top center; animation: blip-drip 2.2s ease-in infinite; }
+@keyframes blip-drip { 0%, 60% { transform: translateY(0); opacity: .9; } 100% { transform: translateY(10px); opacity: 0; } }
+.blip-dots circle { animation: blip-dot 1.8s ease-in-out infinite; }
+.blip-dots .d2 { animation-delay: .25s; } .blip-dots .d3 { animation-delay: .5s; }
+@keyframes blip-dot { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+
+/* the radar screen on the belly sweeps slowly */
+.blip-sweep { transform-origin: 60px 91.8px; animation: blip-scope 5.2s linear infinite; }
+@keyframes blip-scope { to { transform: rotate(360deg); } }
+.blip--sleepy .blip-sweep { animation-duration: 14s; }
+
+/* small sizes drop the finest details */
+.blip--tiny .blip-mark, .blip--tiny .blip-fine, .blip--small .blip-fine { display: none; }
+
+.blip.is-still *, .blip.is-still { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .blip *, .blip { animation: none !important; } .blip-ping { opacity: 0; } }
+html[data-reduce-motion='true'] .blip *, html[data-reduce-motion='true'] .blip { animation: none !important; }
+html[data-reduce-motion='true'] .blip-ping { opacity: 0; }

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en" data-accent="aurora">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>CA Study Tracker</title>
+  <meta name="description" content="Track daily study hours, streaks, mock tests and targets for your CA exams. Works offline." />
+  <meta name="theme-color" content="#060913" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+  %PRELOAD%
+  <style>
+    /* Critical paint: dark canvas + boot splash so there is never a white flash. */
+    html,body{margin:0;background:#060913;color:#eef1fb;height:100%}
+    #boot{position:fixed;inset:0;display:grid;place-items:center;background:#060913;z-index:0}
+    #boot svg{width:84px;height:84px;opacity:.95}
+    #boot .sweep{transform-origin:50px 50px;animation:bootspin 1.6s linear infinite}
+    @keyframes bootspin{to{transform:rotate(360deg)}}
+    @media (prefers-reduced-motion:reduce){#boot .sweep{animation:none}}
+  </style>
+  <script>
+    // Apply the saved accent theme before first paint.
+    try {
+      var s = JSON.parse(localStorage.getItem('ca_settings_v3') || '{}');
+      if (s && s.accent) document.documentElement.setAttribute('data-accent', s.accent);
+      document.documentElement.setAttribute('data-ui', s && s.ui === 'classic' ? 'classic' : 'ios');
+    } catch (e) { document.documentElement.setAttribute('data-ui', 'ios'); }
+  </script>
+  %STYLES%
+</head>
+<body>
+  <div id="root">
+    <div id="boot" aria-hidden="true">
+      <svg viewBox="0 0 100 100" fill="none">
+        <circle cx="50" cy="50" r="42" stroke="#4dd8e8" stroke-opacity=".35" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="28" stroke="#4dd8e8" stroke-opacity=".25" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="14" stroke="#4dd8e8" stroke-opacity=".2" stroke-width="1.5"/>
+        <g class="sweep"><path d="M50 50 L50 8 A42 42 0 0 1 86.4 29 Z" fill="#4dd8e8" fill-opacity=".28"/><path d="M50 50 L50 8" stroke="#4dd8e8" stroke-width="2" stroke-linecap="round"/></g>
+        <circle cx="50" cy="50" r="2.5" fill="#4dd8e8"/>
+      </svg>
+    </div>
+  </div>
+  <noscript><p style="padding:24px;font-family:system-ui">CA Study Tracker needs JavaScript to run.</p></noscript>
+  %SCRIPTS%
+</body>
+</html>

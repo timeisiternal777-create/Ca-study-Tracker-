@@ -1,0 +1,134 @@
+/* ═════════════════════ Lanternfell: the Grounds map ═════════════════════
+   The map is a stack of layers. The background is one SVG that never changes. Each building is its own layer holding a picture painted once;
+   mist, glow, weather and the student are small layers above it. Only transform and opacity ever animate, and only on layers (or in small
+   SVGs): the buildings themselves are never repainted. html[data-motion] decides how much is allowed: calm keeps the small lights, flames and
+   the walker; still keeps nothing and every layer rests on its finished picture. */
+
+/* ───────────────────────── the stage ───────────────────────── */
+.gm-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; background: #060516; }
+.gm-stage { position: relative; width: 100%; min-width: 760px; aspect-ratio: 1200 / 680; contain: layout paint; user-select: none; -webkit-user-select: none; background: #060516; }
+.gm-stage svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.gm-abs, .gm-mv { position: absolute; pointer-events: none; }
+.gm-mv { left: 0; top: 0; will-change: transform; }
+.gm-full { left: 0; top: 0; width: 100%; height: 100%; }
+/* the far castle's flags would repaint the whole background every frame, so they rest */
+.gm-bg .sc-flag { animation: none; }
+.gm-note { fill: #cfc6ff; font: italic 13.5px var(--font-quote); }
+
+/* ───────────────────────── sky and air ───────────────────────── */
+.gm-twinkle { will-change: opacity; animation: gm-twinkle 4.4s ease-in-out infinite alternate; }
+.gm-twinkle.b { animation-delay: -2.2s; animation-duration: 5.6s; }
+@keyframes gm-twinkle { from { opacity: 0.18; } to { opacity: 1; } }
+.gm-cglow { will-change: transform, opacity; animation: gm-cglow 4.2s ease-in-out infinite alternate; }
+@keyframes gm-cglow { from { opacity: 0.55; transform: scale(0.94); } to { opacity: 1; transform: scale(1.07); } }
+.gm-band { left: -20%; width: 140%; will-change: transform; animation: gm-band 76s ease-in-out infinite alternate; }
+.gm-band.a { top: 25%; height: 15%; background: radial-gradient(ellipse 32% 50% at 28% 56%, rgb(207 200 255 / 0.13), transparent 70%), radial-gradient(ellipse 26% 44% at 74% 50%, rgb(207 200 255 / 0.1), transparent 70%); }
+.gm-band.b { top: 60%; height: 15%; animation-duration: 104s; animation-direction: alternate-reverse; background: radial-gradient(ellipse 30% 46% at 62% 58%, rgb(207 200 255 / 0.11), transparent 70%), radial-gradient(ellipse 24% 40% at 22% 48%, rgb(207 200 255 / 0.09), transparent 70%); }
+@keyframes gm-band { from { transform: translate3d(-5%, 0, 0); } to { transform: translate3d(5%, 0, 0); } }
+.gm-ff { z-index: 1; }
+.gm-ff i { top: auto !important; }
+.gm-gust { will-change: transform, opacity; opacity: 0; animation: gm-gust-tail 7.5s ease-in-out infinite; animation-delay: var(--gd, 0s); }
+.gm-gust--head { animation-name: gm-gust-head; } .gm-gust--cross { animation-name: gm-gust-cross; }
+.gm-gust--head svg { transform: scaleX(-1); }
+@keyframes gm-gust-tail { 0% { opacity: 0; transform: translate3d(-14%, 0, 0); } 22%, 70% { opacity: 0.9; } 100% { opacity: 0; transform: translate3d(34%, 0, 0); } }
+@keyframes gm-gust-head { 0% { opacity: 0; transform: translate3d(34%, 0, 0); } 22%, 70% { opacity: 0.9; } 100% { opacity: 0; transform: translate3d(-14%, 0, 0); } }
+@keyframes gm-gust-cross { 0% { opacity: 0; transform: translate3d(-10%, 12%, 0); } 22%, 70% { opacity: 0.9; } 100% { opacity: 0; transform: translate3d(26%, -16%, 0); } }
+
+/* ───────────────────────── a building ───────────────────────── */
+.gm-b { position: absolute; }
+.gm-art, .gm-lyr { position: absolute; inset: 0; pointer-events: none; }
+.gm-art svg { overflow: visible; }
+/* windows are lit by a class the art carries: dark until `on`, then they fade up, one building after another */
+.gm-b .lw, .gm-b .lh { opacity: 0; transition: opacity 1.1s ease; transition-delay: var(--lit-d, 0s); }
+.gm-b .lw.on, .gm-b .lh.on { opacity: 1; }
+.gm-b .pen { opacity: 0; transition: opacity 0.9s ease 0.3s; }
+.gm-b.is-cleared .pen { opacity: 1; }
+/* a cleared building also keeps a faint gold edge on its plate */
+.gm-b.is-cleared .gm-plate-bg { stroke: rgb(255 217 138 / 0.85); }
+
+/* warm light spilling onto the lawn from the lit windows */
+.gm-spill i { position: absolute; left: -14%; right: -14%; bottom: -10%; height: 32%; border-radius: 50%; will-change: opacity; animation: gm-breathe 4.2s ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -1.1s);
+  background: radial-gradient(ellipse at 50% 50%, rgb(255 206 124 / 0.46), rgb(255 160 84 / 0.15) 54%, transparent 74%); }
+@keyframes gm-breathe { from { opacity: 0.6; } to { opacity: 1; } }
+
+/* mist over what is unexplored: two soft layers that drift past each other */
+.gm-fog { will-change: transform, opacity; transition: opacity 1.4s ease; }
+.gm-fog.fa { animation: gm-fog-a 19s ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -3.1s); }
+.gm-fog.fb { animation: gm-fog-b 27s ease-in-out infinite alternate; animation-delay: calc(var(--k, 0) * -4.3s); }
+@keyframes gm-fog-a { from { transform: translate3d(-4%, 1%, 0); } to { transform: translate3d(5%, -2%, 0); } }
+@keyframes gm-fog-b { from { transform: translate3d(6%, 2%, 0) scale(1.04); } to { transform: translate3d(-5%, -2%, 0) scale(0.97); } }
+
+/* the working ring, while a lesson is being timed here */
+.gm-ring i { position: absolute; left: 2%; right: 2%; bottom: -3%; height: 13%; border-radius: 50%; border: 2.4px solid rgb(255 217 138 / 0.9); will-change: transform, opacity; animation: gm-ring 2.8s ease-out infinite; }
+@keyframes gm-ring { from { opacity: 0.95; transform: scale(0.9); } to { opacity: 0; transform: scale(1.22); } }
+
+/* choosing a building */
+.gm-sel { position: absolute; left: -6%; right: -6%; bottom: -4%; height: 13%; border: 2.4px dashed rgb(242 194 92 / 0.95); border-radius: 50%; opacity: 0; transition: opacity 0.2s ease; pointer-events: none; }
+.gm-b:hover .gm-sel, .gm-b:focus-within .gm-sel { opacity: 0.5; }
+.gm-b.is-selected .gm-sel { opacity: 1; }
+.gm-hit { position: absolute; inset: -4% -3% -24% -3%; border: 0; padding: 0; background: none; border-radius: 14px; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+.gm-hit:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+
+/* the nameplate at the door */
+.gm-plate-l { position: absolute; pointer-events: none; }
+.gm-plate-post { stroke: #1b1840; stroke-width: 3; fill: none; stroke-linecap: round; }
+.gm-plate-bg { fill: rgb(10 8 30 / 0.88); stroke: rgb(var(--ac-rgb, 242 194 92) / 0.55); stroke-width: 1.4; transition: stroke 0.2s ease; }
+.gm-b:hover .gm-plate-bg, .gm-b:focus-within .gm-plate-bg { stroke: rgb(var(--ac-rgb, 242 194 92) / 0.95); }
+.gm-b.is-selected .gm-plate-bg { stroke: rgb(255 226 150 / 0.98); stroke-width: 2; }
+.gm-plate-bar { fill: rgb(255 255 255 / 0.12); }
+.gm-plate-fill { fill: var(--ac, #f2c25c); }
+.gm-plate-dot { fill: var(--ac, #f2c25c); }
+.gm-plate-abbr { fill: #ece8ff; font: 700 13px var(--font-ui); }
+.gm-plate-pct { fill: #c3bde8; font: 700 12.5px var(--font-num); letter-spacing: -0.01em; }
+.gm-b[data-state='uncharted'] .gm-plate-pct { fill: #8d88b8; }
+
+/* weather over a building: small pictures, so their parts may animate */
+.gm-wx { position: absolute; pointer-events: none; will-change: transform; }
+.gm-cloud { animation: gm-cloud 6.4s ease-in-out infinite alternate; }
+.gm-rain path { fill: none; stroke: #a9c8ff; stroke-width: 2.2; stroke-linecap: round; animation: gm-rain 0.9s linear infinite; animation-delay: calc(var(--i, 0) * -0.18s); }
+.gm-bolt { fill: #ffe27a; stroke: #17122e; stroke-width: 1.4; stroke-linejoin: round; animation: gm-bolt 4.6s linear infinite; opacity: 0; }
+.gm-spark { fill: #ffe9a8; stroke: #17122e; stroke-width: 1.1; stroke-linejoin: round; transform-box: fill-box; transform-origin: 50% 50%; animation: gm-spark 2.8s ease-in-out infinite; }
+.gm-spark--1 { animation-delay: -0.9s; } .gm-spark--2 { animation-delay: -1.8s; }
+@keyframes gm-cloud { from { transform: translate3d(-4px, 0, 0); } to { transform: translate3d(5px, -1px, 0); } }
+@keyframes gm-rain { 0% { opacity: 0; transform: translate3d(0, -4px, 0); } 25% { opacity: 1; } 100% { opacity: 0; transform: translate3d(-2px, 10px, 0); } }
+@keyframes gm-bolt { 0%, 88%, 92%, 100% { opacity: 0; } 90%, 95% { opacity: 1; } }
+@keyframes gm-spark { 0%, 100% { opacity: 0.25; transform: scale(0.5) rotate(0deg); } 50% { opacity: 1; transform: scale(1.1) rotate(14deg); } }
+
+/* ───────────────────────── the student ───────────────────────── */
+.gm-walker { transition: transform 2.4s cubic-bezier(0.45, 0.05, 0.25, 1); }
+.gm-turn { width: 100%; height: 100%; transition: transform 0.5s ease; }
+.gm-turn > svg { transform-origin: 50% 96%; will-change: transform; }
+.gm-walker.is-walking .gm-turn > svg { animation: gm-step 0.46s ease-in-out infinite alternate; }
+@keyframes gm-step { from { transform: translate3d(0, 0, 0) rotate(-2deg); } to { transform: translate3d(0, -2px, 0) rotate(2deg); } }
+.gm-w-body { transform-box: view-box; transform-origin: 0 0; }
+.gm-w-lamp { transform-box: view-box; transform-origin: 24px -26px; animation: gm-lamp-swing 3.8s ease-in-out infinite alternate; }
+@keyframes gm-lamp-swing { from { transform: rotate(-5deg); } to { transform: rotate(5deg); } }
+.gm-w-glow { animation: gm-glow 3s ease-in-out infinite alternate; }
+@keyframes gm-glow { from { opacity: 0.55; } to { opacity: 1; } }
+.gm-w-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: gm-flame 1.7s ease-in-out infinite; }
+@keyframes gm-flame { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(0.88, 1.14); } }
+.gm-w-ring { transform-box: fill-box; transform-origin: 50% 50%; animation: gm-wring 2.2s ease-out infinite; }
+@keyframes gm-wring { from { opacity: 0.9; transform: scale(0.7); } to { opacity: 0; transform: scale(1.5); } }
+
+/* ───────────────────────── the lamp lane and the banner ───────────────────────── */
+.gm-lane-l { transition: transform 1.6s cubic-bezier(0.45, 0.05, 0.25, 1); }
+.gm-pl { transform-box: view-box; transform-origin: 0 -46px; animation: gm-pl-swing 3.4s ease-in-out infinite alternate; }
+.gm-lane-l.ghost .gm-pl { animation-delay: -1.3s; }
+.gm-pl--ghost { opacity: 0.78; }
+@keyframes gm-pl-swing { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+.gm-banner { position: absolute; inset: 0; transform-origin: 11% 8%; will-change: transform; animation: gm-banner 5.2s ease-in-out infinite alternate; }
+.gm-crest { position: absolute; left: 19%; top: 16%; width: 66%; aspect-ratio: 1; }
+.gm-crest--plain { border: 2px dashed rgb(200 196 230 / 0.5); border-radius: 50%; left: 30%; top: 21%; width: 44%; }
+@keyframes gm-banner { from { transform: skewY(-1.4deg) scaleX(1); } to { transform: skewY(1.4deg) scaleX(0.97); } }
+
+/* ───────────────────────── how much may move ───────────────────────── */
+html[data-motion='calm'] .gm-twinkle, html[data-motion='calm'] .gm-band, html[data-motion='calm'] .gm-gust, html[data-motion='calm'] .gm-fog, html[data-motion='calm'] .gm-cglow,
+html[data-motion='calm'] .gm-cloud, html[data-motion='calm'] .gm-rain path, html[data-motion='calm'] .gm-bolt, html[data-motion='calm'] .gm-banner { animation: none; }
+html[data-motion='calm'] .gm-twinkle, html[data-motion='calm'] .gm-cglow { opacity: 0.8; }
+html[data-motion='still'] .gm-stage * { animation: none !important; }
+html[data-motion='still'] .gm-twinkle, html[data-motion='still'] .gm-cglow { opacity: 0.8; }
+html[data-motion='still'] .gm-gust { opacity: 0; }
+html[data-motion='still'] .gm-walker, html[data-motion='still'] .gm-lane-l, html[data-motion='still'] .gm-fog, html[data-motion='still'] .gm-turn,
+html[data-motion='still'] .gm-b .lw, html[data-motion='still'] .gm-b .lh, html[data-motion='still'] .gm-b .pen { transition-duration: 0.01s; transition-delay: 0s; }
+html[data-motion='still'] .gm-ring i { opacity: 0.6; }
+html[data-motion='still'] .gm-rain, html[data-motion='still'] .gm-bolt { display: none; }

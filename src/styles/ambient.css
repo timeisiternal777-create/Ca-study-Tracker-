@@ -1,0 +1,122 @@
+/* ═════════════════════════ Living interface ═════════════════════════
+   Things that keep moving on their own, so the app never looks frozen between taps.
+
+   The rules every loop here follows:
+   - Only transform and opacity change. Nothing animates layout, shadows, filters or gradients.
+   - A moving piece is a small layer that holds a still picture. The picture is painted once; the browser only moves or fades it.
+   - The background is one canvas redrawn about twenty times a second, not dozens of moving layers. Small pieces (a sheen, a flame, a ring) can be everywhere because they are tiny.
+   - html[data-motion] (lib/motion.ts) decides how much is allowed: full, calm (no big pieces, no particles) or still (no loops).
+   Loops are listed in one place at the end of this file so each level switches off exactly what it should. */
+
+/* ───────── The sky is one canvas (lib/sky.ts). It sits on the fixed .bg layer and never moves itself. ───────── */
+.sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; opacity: 0; transition: opacity 600ms ease; }
+.sky.is-ready { opacity: 1; }
+
+/* ───────── The brand mark is a little radar: its beam turns and the amber blip pulses ───────── */
+.logo-sweep { transform-origin: 256px 256px; animation: logo-spin 9s linear infinite; }
+.logo-blip { transform-origin: 348px 170px; animation: logo-blip 9s ease-in-out infinite; }
+@keyframes logo-spin { to { transform: rotate(360deg); } }
+@keyframes logo-blip { 0%, 100% { opacity: 0.5; transform: scale(0.85); } 16% { opacity: 1; transform: scale(1.25); } 34% { opacity: 0.7; transform: scale(1); } }
+
+/* ───────── The menu highlight breathes; the top bar chips glow ───────── */
+.nav-glide::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0.15;
+  background: linear-gradient(90deg, rgb(var(--a-rgb) / 0.26), transparent 78%); animation: breathe 5s ease-in-out infinite; }
+.bn-glide::after { animation: breathe 4.6s ease-in-out infinite; }
+@keyframes breathe { 0%, 100% { opacity: 0.2; } 50% { opacity: 1; } }
+
+.xp-pill { position: relative; isolation: isolate; }
+.xp-pill::before { content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none; opacity: 0.2;
+  box-shadow: 0 0 20px -2px rgb(var(--c-gold-rgb) / 0.6); animation: breathe 4.4s ease-in-out infinite; }
+.xp-ic svg { animation: twinkle-icon 3.6s ease-in-out infinite; }
+@keyframes twinkle-icon { 0%, 100% { transform: scale(1) rotate(0deg); } 50% { transform: scale(1.2) rotate(16deg); } }
+
+/* ───────── Primary buttons catch the light now and then ───────── */
+.btn--primary { overflow: hidden; isolation: isolate; }
+.btn--primary::after { content: ''; position: absolute; top: -25%; bottom: -25%; left: 0; width: 42%; z-index: 1; pointer-events: none; will-change: transform;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 0.5) 50%, transparent); transform: translate3d(-150%, 0, 0) skewX(-18deg);
+  animation: sheen 7s var(--ease-in-out) infinite; animation-delay: var(--sheen-delay, 1.6s); }
+.btn--primary:disabled::after, .btn--primary[aria-disabled='true']::after { display: none; }
+@keyframes sheen { 0%, 64% { transform: translate3d(-150%, 0, 0) skewX(-18deg); } 100% { transform: translate3d(340%, 0, 0) skewX(-18deg); } }
+
+/* The main call to action gets a soft aura that swells and settles, like a breath. */
+.cta { position: relative; display: inline-flex; isolation: isolate; }
+.cta-aura { position: absolute; inset: -9px -14px; z-index: -1; border-radius: 22px; pointer-events: none; will-change: transform, opacity;
+  background: radial-gradient(closest-side, rgb(var(--a-rgb) / 0.55), rgb(var(--a2-rgb) / 0.16) 62%, transparent 100%); animation: aura 3.6s ease-in-out infinite; }
+@keyframes aura { 0%, 100% { opacity: 0.18; transform: scale(0.94); } 50% { opacity: 0.85; transform: scale(1.06); } }
+
+/* ───────── Progress bars: a live bar has light flowing through it ───────── */
+.bar > i { position: relative; overflow: hidden; }
+.bar--live > i::after { content: ''; position: absolute; top: 0; bottom: 0; left: 0; right: -20px; pointer-events: none; will-change: transform;
+  background: repeating-linear-gradient(135deg, rgb(255 255 255 / 0.2) 0 7.07px, transparent 7.07px 14.14px); animation: bar-flow 1.15s linear infinite; }
+@keyframes bar-flow { to { transform: translate3d(20px, 0, 0); } }
+/* Every bar grows to its value when it first appears. */
+.bar > i { transform-origin: 0 50%; animation: bar-grow 1100ms var(--ease) backwards; }
+@keyframes bar-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ───────── Icons that have a life of their own ───────── */
+.stat--flame .stat-icon { position: relative; }
+.stat--flame .stat-icon svg { transform-origin: 50% 90%; animation: flame 1.9s ease-in-out infinite; }
+.stat--flame .stat-icon::before, .stat--flame .stat-icon::after { content: ''; position: absolute; left: 50%; bottom: 55%; width: 3px; height: 3px; margin-left: -1.5px; border-radius: 50%; opacity: 0; pointer-events: none;
+  background: var(--c-gold); box-shadow: 0 0 6px 1px rgb(var(--c-gold-rgb) / 0.8); will-change: transform, opacity; animation: ember 2.6s ease-out infinite; }
+.stat--flame .stat-icon::after { margin-left: 3px; animation-duration: 3.3s; animation-delay: -1.3s; }
+@keyframes flame {
+  0%, 100% { transform: scale(1, 1) rotate(0deg); } 14% { transform: scale(0.96, 1.08) rotate(-3deg); } 31% { transform: scale(1.04, 0.95) rotate(2deg); }
+  52% { transform: scale(0.97, 1.1) rotate(-2deg); } 71% { transform: scale(1.03, 0.97) rotate(3deg); } 86% { transform: scale(0.99, 1.05) rotate(-1deg); }
+}
+@keyframes ember { 0% { opacity: 0; transform: translate3d(0, 4px, 0) scale(1); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate3d(-3px, -22px, 0) scale(0.3); } }
+.stat--pulse .stat-icon svg { animation: pulse-icon 2.8s ease-in-out infinite; }
+.stat--spin .stat-icon svg { animation: spin 14s linear infinite; }
+.stat--shine .stat-icon svg { animation: twinkle-icon 3.6s ease-in-out infinite; }
+@keyframes pulse-icon { 0%, 100% { transform: scale(1); } 12% { transform: scale(1.18); } 24% { transform: scale(1); } 36% { transform: scale(1.1); } 48% { transform: scale(1); } }
+
+/* ───────── The hero dial hovers and glows; big cards catch a slow gleam ───────── */
+.radar { animation: float-y 8s ease-in-out infinite; will-change: transform; }
+@keyframes float-y { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -6px, 0); } }
+.hero-dial { position: relative; isolation: isolate; }
+.hero-dial::before { content: ''; position: absolute; left: 50%; top: 150px; width: 380px; height: 380px; margin: -190px 0 0 -190px; z-index: -1; border-radius: 50%; pointer-events: none; will-change: transform, opacity;
+  background: radial-gradient(closest-side, rgb(var(--a-rgb) / 0.2), rgb(var(--a2-rgb) / 0.07) 58%, transparent 74%); animation: aura 6s ease-in-out infinite; }
+.sheen { overflow: hidden; }
+.sheen::after { content: ''; position: absolute; top: -10%; bottom: -10%; left: 0; width: 30%; z-index: 0; pointer-events: none; will-change: transform;
+  background: linear-gradient(105deg, transparent, rgb(255 255 255 / 0.055) 50%, transparent); transform: translate3d(-140%, 0, 0);
+  animation: gleam 15s var(--ease-in-out) infinite; animation-delay: var(--gleam, 3s); }
+@keyframes gleam { 0%, 68% { transform: translate3d(-140%, 0, 0); } 100% { transform: translate3d(480%, 0, 0); } }
+
+/* ───────── Today's square in the study-year grid keeps a soft ring breathing around it ───────── */
+.hm-cell.is-today::after { content: ''; position: absolute; inset: -3px; border-radius: inherit; border: 1.5px solid var(--a); opacity: 0; pointer-events: none; animation: ring-breathe 3.2s ease-in-out infinite; }
+@keyframes ring-breathe { 0%, 100% { opacity: 0; transform: scale(0.92); } 50% { opacity: 0.85; transform: scale(1.08); } }
+
+/* ───────── Countdown digits roll instead of snapping ───────── */
+.cd-num { position: relative; display: inline-block; }
+.cd-out { position: absolute; left: 0; right: 0; top: 0; text-align: center; pointer-events: none; opacity: 0; }
+
+/* ───────── Moving between screens: the new screen arrives from the side you went towards ───────── */
+html[data-dir='f'] .page-enter { animation: page-in-f 480ms var(--ease) backwards; }
+html[data-dir='b'] .page-enter { animation: page-in-b 480ms var(--ease) backwards; }
+@keyframes page-in-f { from { opacity: 0; transform: translate3d(30px, 0, 0); } to { opacity: 1; transform: none; } }
+@keyframes page-in-b { from { opacity: 0; transform: translate3d(-30px, 0, 0); } to { opacity: 1; transform: none; } }
+@supports (view-transition-name: none) {
+  html[data-dir='f']::view-transition-old(page) { animation: vt-out-f 190ms var(--ease) both; }
+  html[data-dir='b']::view-transition-old(page) { animation: vt-out-b 190ms var(--ease) both; }
+  @keyframes vt-out-f { to { opacity: 0; transform: translate3d(-24px, 0, 0); } }
+  @keyframes vt-out-b { to { opacity: 0; transform: translate3d(24px, 0, 0); } }
+}
+
+/* ═════════════ The levels ═════════════
+   calm: the sky keeps only its stars (lib/sky.ts) and the big soft glows go; small loops stay. */
+html[data-motion='calm'] .cta-aura, html[data-motion='calm'] .hero-dial::before, html[data-motion='calm'] .sheen::after { display: none; }
+html[data-motion='calm'] .radar, html[data-motion='calm'] .blip-sweep { animation: none; }
+
+/* still: nothing loops. Pictures stay where they rest. (Written out one by one: pseudo-elements cannot go inside :is().) */
+html[data-motion='still'] .cta-aura, html[data-motion='still'] .hm-cell.is-today::after,
+html[data-motion='still'] .btn--primary::after, html[data-motion='still'] .sheen::after, html[data-motion='still'] .bar--live > i::after,
+html[data-motion='still'] .stat--flame .stat-icon::before, html[data-motion='still'] .stat--flame .stat-icon::after, html[data-motion='still'] .hero-dial::before { display: none; }
+html[data-motion='still'] .logo-sweep, html[data-motion='still'] .logo-blip,
+html[data-motion='still'] .nav-glide::after, html[data-motion='still'] .bn-glide::after, html[data-motion='still'] .xp-pill::before, html[data-motion='still'] .xp-ic svg,
+html[data-motion='still'] .radar, html[data-motion='still'] .stat--flame .stat-icon svg, html[data-motion='still'] .stat--pulse .stat-icon svg,
+html[data-motion='still'] .stat--spin .stat-icon svg, html[data-motion='still'] .stat--shine .stat-icon svg { animation: none; }
+/* Anything else that loops (Blip, radar, timer rings) runs once. Spinners keep going: they mean "busy". */
+html[data-motion='still'] *:not(.spinner), html[data-motion='still'] *:not(.spinner)::before, html[data-motion='still'] *:not(.spinner)::after { animation-iteration-count: 1 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .logo-sweep, .logo-blip, .radar { animation: none; }
+}

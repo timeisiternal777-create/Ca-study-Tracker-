@@ -1,0 +1,44 @@
+/* ═════════════ The crew: small characters that never quite stand still ═════════════
+   Only transform and opacity move. A character is a few small groups (breathing, a head that tilts, hair or cloth that sways, a blink),
+   so they cost almost nothing. html[data-motion] decides how much of it is allowed: calm keeps breathing, blinking and steam; still keeps none. */
+
+.cr { display: inline-block; position: relative; flex: none; line-height: 0; vertical-align: top; }
+.cr svg { display: block; overflow: visible; }
+
+.cr-breathe { animation: cr-breathe 4s ease-in-out infinite; animation-delay: var(--cr-delay, 0s); }
+@keyframes cr-breathe { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, 1.8px, 0); } }
+
+.cr-head { transform-box: view-box; transform-origin: 80px 128px; animation: cr-head 4s ease-in-out infinite; animation-delay: var(--cr-delay, 0s); }
+@keyframes cr-head {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); } 25% { transform: translate3d(0, 0.9px, 0) rotate(1.3deg); }
+  50% { transform: translate3d(0, 1.8px, 0) rotate(0deg); } 75% { transform: translate3d(0, 0.9px, 0) rotate(-1.3deg); }
+}
+
+.cr-sway { transform-box: view-box; transform-origin: 80px 60px; animation: cr-sway 5.8s ease-in-out infinite alternate; animation-delay: var(--cr-delay, 0s); }
+@keyframes cr-sway { from { transform: rotate(-1.6deg); } to { transform: rotate(1.6deg); } }
+
+.cr-eyes { transform-box: fill-box; transform-origin: 50% 50%; animation: cr-blink 5.2s ease-in-out infinite; animation-delay: var(--cr-delay, 0s); }
+@keyframes cr-blink { 0%, 90%, 100% { transform: scaleY(1); } 93% { transform: scaleY(0.08); } 96.5% { transform: scaleY(1); } }
+.cr-gaze { animation: cr-gaze 9s ease-in-out infinite; animation-delay: var(--cr-delay, 0s); }
+@keyframes cr-gaze { 0%, 100% { transform: translate3d(0, 0, 0); } 30% { transform: translate3d(1px, 0.4px, 0); } 65% { transform: translate3d(-1px, 0, 0); } }
+
+/* A new expression pops in instead of swapping. */
+.cr-face { transform-box: view-box; transform-origin: 80px 100px; animation: cr-face-in 240ms var(--ease) backwards; }
+@keyframes cr-face-in { from { opacity: 0.2; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+
+.cr-compass { transform-box: view-box; transform-origin: 80px 166px; animation: cr-swing 4.6s ease-in-out infinite alternate; }
+.cr-astro { transform-box: view-box; transform-origin: 114px 160px; animation: cr-swing 7s ease-in-out infinite alternate; }
+.cr-mallet { transform-box: view-box; transform-origin: 26px 196px; animation: cr-swing 6s ease-in-out infinite alternate; }
+.cr-ladle { transform-box: view-box; transform-origin: 138px 198px; animation: cr-swing 5.2s ease-in-out infinite alternate; }
+@keyframes cr-swing { from { transform: rotate(-2.6deg); } to { transform: rotate(2.6deg); } }
+.cr-steam { animation: cr-steam 3.4s ease-in-out infinite; animation-delay: var(--cr-delay, 0s); }
+@keyframes cr-steam { 0% { opacity: 0; transform: translate3d(0, 3px, 0); } 35% { opacity: 1; } 100% { opacity: 0; transform: translate3d(0, -9px, 0); } }
+
+/* calm: breathing, blinking and steam stay; the larger swings go. still: nothing loops. */
+html[data-motion='calm'] .cr-head, html[data-motion='calm'] .cr-sway, html[data-motion='calm'] .cr-gaze, html[data-motion='calm'] .cr-compass,
+html[data-motion='calm'] .cr-astro, html[data-motion='calm'] .cr-mallet, html[data-motion='calm'] .cr-ladle { animation: none; }
+html[data-motion='still'] .cr-breathe, html[data-motion='still'] .cr-head, html[data-motion='still'] .cr-sway, html[data-motion='still'] .cr-eyes, html[data-motion='still'] .cr-gaze,
+html[data-motion='still'] .cr-compass, html[data-motion='still'] .cr-astro, html[data-motion='still'] .cr-mallet, html[data-motion='still'] .cr-ladle, html[data-motion='still'] .cr-steam { animation: none; }
+html[data-motion='still'] .cr-steam { opacity: 0.55; }
+.cr.is-still .cr-breathe, .cr.is-still .cr-head, .cr.is-still .cr-sway, .cr.is-still .cr-eyes, .cr.is-still .cr-gaze, .cr.is-still .cr-compass,
+.cr.is-still .cr-astro, .cr.is-still .cr-mallet, .cr.is-still .cr-ladle, .cr.is-still .cr-steam { animation: none; }

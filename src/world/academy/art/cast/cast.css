@@ -1,0 +1,31 @@
+/* ═════════════ Lanternfell's people. They share the crew's face and idle motion (cr-* classes); these are only the props. ═════════════
+   Everything moves with transform and opacity only. html[data-motion] decides how much: calm keeps blinking, breathing and flames; still keeps none. */
+
+.ac-flame { transform-box: fill-box; transform-origin: 50% 100%; animation: ac-flame 1.9s ease-in-out infinite; animation-delay: var(--cr-delay, 0s); }
+@keyframes ac-flame {
+  0%, 100% { transform: scale(1, 1); opacity: 1; } 28% { transform: scale(0.93, 1.09); opacity: 0.93; }
+  54% { transform: scale(1.05, 0.95); opacity: 1; } 80% { transform: scale(0.97, 1.05); opacity: 0.95; }
+}
+.ac-glow { animation: ac-glow 3.2s ease-in-out infinite; animation-delay: var(--cr-delay, 0s); }
+@keyframes ac-glow { 0%, 100% { opacity: 0.55; } 50% { opacity: 0.9; } }
+
+.ac-lantern { transform-box: view-box; transform-origin: 128px 148px; animation: ac-swing 4.4s ease-in-out infinite alternate; animation-delay: var(--cr-delay, 0s); }
+.ac-staff { transform-box: view-box; transform-origin: 140px 168px; animation: ac-swing-s 6.4s ease-in-out infinite alternate; animation-delay: var(--cr-delay, 0s); }
+.ac-books { transform-box: view-box; transform-origin: 40px 192px; animation: ac-swing-s 7.4s ease-in-out infinite alternate; animation-delay: var(--cr-delay, 0s); }
+.ac-bell { transform-box: view-box; transform-origin: 80px 160px; animation: ac-swing-b 3.6s ease-in-out infinite alternate; animation-delay: var(--cr-delay, 0s); }
+.ac-whistle { transform-box: view-box; transform-origin: 80px 152px; animation: ac-swing-s 5s ease-in-out infinite alternate; animation-delay: var(--cr-delay, 0s); }
+.ac-pole { transform-box: view-box; transform-origin: 136px 168px; animation: ac-swing-s 5.6s ease-in-out infinite alternate; animation-delay: var(--cr-delay, 0s); }
+.ac-tick { transform-box: view-box; transform-origin: 38px 164px; animation: ac-tick 12s linear infinite; }
+@keyframes ac-swing { from { transform: rotate(-4deg); } to { transform: rotate(4deg); } }
+@keyframes ac-swing-s { from { transform: rotate(-1.4deg); } to { transform: rotate(1.4deg); } }
+@keyframes ac-swing-b { from { transform: rotate(-9deg); } to { transform: rotate(9deg); } }
+@keyframes ac-tick { to { transform: rotate(360deg); } }
+
+html[data-motion='calm'] .ac-lantern, html[data-motion='calm'] .ac-staff, html[data-motion='calm'] .ac-books, html[data-motion='calm'] .ac-bell,
+html[data-motion='calm'] .ac-whistle, html[data-motion='calm'] .ac-pole, html[data-motion='calm'] .ac-tick { animation: none; }
+html[data-motion='still'] .ac-flame, html[data-motion='still'] .ac-glow, html[data-motion='still'] .ac-lantern, html[data-motion='still'] .ac-staff,
+html[data-motion='still'] .ac-books, html[data-motion='still'] .ac-bell, html[data-motion='still'] .ac-whistle, html[data-motion='still'] .ac-pole, html[data-motion='still'] .ac-tick { animation: none; }
+html[data-motion='still'] .ac-glow { opacity: 0.7; }
+.ac.is-still .ac-flame, .ac.is-still .ac-glow, .ac.is-still .ac-lantern, .ac.is-still .ac-staff, .ac.is-still .ac-books, .ac.is-still .ac-bell,
+.ac.is-still .ac-whistle, .ac.is-still .ac-pole, .ac.is-still .ac-tick { animation: none; }
+.ac.is-still .ac-glow { opacity: 0.7; }

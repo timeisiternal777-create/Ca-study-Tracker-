@@ -1,0 +1,75 @@
+/* Chart kit */
+.ch-card { display: flex; flex-direction: column; gap: 14px; padding: 22px; border-radius: var(--r-xl); background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow-card); min-width: 0; }
+.ch-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.ch-title { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.ch-sub { margin-top: 3px; font-size: 13px; color: var(--tx-2); }
+.ch-switch { width: 36px; height: 36px; }
+.ch-switch[aria-pressed='true'] { color: var(--a); border-color: rgb(var(--a-rgb) / 0.5); background: rgb(var(--a-rgb) / 0.1); }
+
+.ch-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; }
+.ch-legend button { display: inline-flex; align-items: center; gap: 8px; min-height: 28px; font-size: 13px; color: var(--tx-1); border-radius: 8px; padding: 0 6px; transition: opacity var(--t-fast); }
+.ch-legend button:disabled { cursor: default; }
+.ch-legend button[aria-pressed='false'] { opacity: 0.4; text-decoration: line-through; }
+.ch-legend i { width: 10px; height: 10px; border-radius: 3px; flex: none; }
+
+.ch-wrap { position: relative; width: 100%; touch-action: pan-y; }
+.ch-svg { display: block; overflow: visible; outline: none; }
+.ch-svg:focus-visible { outline: 2px solid var(--a); outline-offset: 4px; border-radius: 8px; }
+.ch-grid line { stroke: rgb(150 170 255 / 0.1); stroke-width: 1; shape-rendering: crispEdges; }
+.ch-grid text, .ch-xaxis text { fill: var(--tx-2); font-size: 11.5px; font-variant-numeric: tabular-nums; }
+.ch-xaxis text.is-hot { fill: var(--tx-0); font-weight: 600; }
+.ch-goal { stroke: rgb(255 255 255 / 0.32); stroke-width: 1.25; stroke-dasharray: 4 4; }
+.ch-goal-t { fill: var(--tx-2); font-size: 11.5px; }
+.ch-line { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; animation: ch-draw 900ms var(--ease) calc(var(--i, 0) * 120ms) forwards; }
+.ch-line[data-dashed] { stroke-dasharray: 5 5; stroke-dashoffset: 0; animation: ch-fade 600ms var(--ease) both; }
+.ch-area { opacity: 0; fill-opacity: 0.14; animation: ch-fade 800ms var(--ease) 250ms forwards; }
+.ch-cross { stroke: rgb(255 255 255 / 0.28); stroke-width: 1; opacity: 0; pointer-events: none; }
+.ch-dot { opacity: 0; stroke: #0c1124; stroke-width: 2; pointer-events: none; }
+.ch-hit { fill: transparent; cursor: crosshair; }
+.ch-barpath { transform-box: fill-box; transform-origin: bottom; animation: ch-grow 700ms var(--ease) var(--d, 0ms) backwards; transition: opacity var(--t-fast); }
+.ch-bar.is-dim .ch-barpath { opacity: 0.4; }
+@keyframes ch-draw { to { stroke-dashoffset: 0; } }
+@keyframes ch-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ch-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+.ch-tip { position: absolute; left: 0; top: 0; z-index: 4; min-width: 120px; max-width: 240px; padding: 10px 12px; border-radius: 12px; pointer-events: none; opacity: 0; will-change: transform;
+  background: #151c3d; border: 1px solid var(--line-3); box-shadow: 0 14px 32px -10px rgb(0 0 0 / 0.8); font-size: 12.5px; transition: opacity 120ms ease; }
+.ch-tip[data-on='true'] { opacity: 1; }
+.ch-tip-t { font-weight: 600; color: var(--tx-0); margin-bottom: 6px; }
+.ch-tip-r { display: flex; align-items: center; gap: 8px; color: var(--tx-1); line-height: 1.7; }
+.ch-tip-r i { width: 8px; height: 8px; border-radius: 3px; flex: none; }
+.ch-tip-r span { flex: 1; }
+.ch-tip-r b { color: var(--tx-0); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* donut */
+.ch-donut { position: relative; flex: none; }
+.ch-donut-track { stroke: rgb(255 255 255 / 0.06); }
+.ch-seg { transition: opacity var(--t-fast), stroke-width var(--t-fast) var(--ease); outline: none; stroke-linecap: butt; cursor: pointer; animation: ch-fade 700ms var(--ease) calc(var(--i, 0) * 60ms) both; }
+.ch-seg:focus-visible { filter: brightness(1.25); }
+.ch-donut-c { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; text-align: center; gap: 2px; pointer-events: none; padding: 20%; }
+.ch-donut-c b { font-size: 26px; font-weight: 800; letter-spacing: -0.03em; }
+.ch-donut-c span { font-size: 12px; color: var(--tx-1); max-width: 100%; }
+
+/* ranked bars */
+.ch-hbar { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.ch-hbar-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13.5px; }
+.ch-hbar-l { display: inline-flex; align-items: center; gap: 8px; min-width: 0; color: var(--tx-0); }
+.ch-hbar-top b { font-size: 15px; }
+.ch-hbar-track { height: 8px; margin-top: 7px; border-radius: 99px; background: rgb(255 255 255 / 0.07); overflow: hidden; }
+.ch-hbar-track i { display: block; height: 100%; border-radius: inherit; transform-origin: left; animation: ch-scalex 800ms var(--ease) calc(var(--i, 0) * 50ms) backwards; }
+.ch-hbar-sub { margin-top: 5px; font-size: 12px; color: var(--tx-2); }
+@keyframes ch-scalex { from { transform: scaleX(0) !important; } }
+
+/* table view */
+.ch-table-wrap { overflow: auto; max-height: 340px; border-radius: 12px; border: 1px solid var(--line); }
+.ch-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.ch-table th, .ch-table td { padding: 9px 14px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.ch-table thead th { position: sticky; top: 0; background: #121936; color: var(--tx-1); font-weight: 600; }
+.ch-table th:first-child, .ch-table td:first-child { text-align: left; }
+.ch-table tbody th { font-weight: 500; color: var(--tx-0); }
+.ch-table tbody tr:last-child > * { border-bottom: 0; }
+
+@media (prefers-reduced-motion: reduce) { .ch-line, .ch-area, .ch-barpath, .ch-seg, .ch-hbar-track i { animation: none !important; stroke-dashoffset: 0; opacity: 1; } .ch-area { opacity: 1; } }
+:root[data-reduce-motion='true'] .ch-line, :root[data-reduce-motion='true'] .ch-area, :root[data-reduce-motion='true'] .ch-barpath, :root[data-reduce-motion='true'] .ch-seg, :root[data-reduce-motion='true'] .ch-hbar-track i { animation: none !important; stroke-dashoffset: 0; opacity: 1; }
+
+.ch-mk { stroke: #0c1124; stroke-width: 1.5; pointer-events: none; }

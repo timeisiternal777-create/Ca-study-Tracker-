@@ -1,0 +1,79 @@
+/* Celebrations: a card with Blip, confetti and an XP count-up. Only transform and opacity move. */
+.cel-root { position: fixed; inset: 0; z-index: 140; pointer-events: none; }
+.cel-scrim { position: absolute; inset: 0; pointer-events: auto; background: radial-gradient(ellipse at 50% 45%, rgb(14 18 44 / 0.55), rgb(4 6 16 / 0.82)); animation: fade 320ms var(--ease) backwards; }
+.cel-scrim.is-closing { animation: fade-out 240ms ease both; }
+
+.cel-card { position: absolute; left: 0; right: 0; margin-inline: auto; top: calc(var(--topbar-h, 64px) + var(--safe-t, 0px) + 12px); width: min(440px, calc(100vw - 24px)); pointer-events: auto; cursor: pointer;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 6px 14px; padding: 12px 18px 16px 12px; border-radius: 24px; overflow: visible;
+  background: linear-gradient(135deg, rgb(var(--ac-rgb) / 0.24), rgb(21 27 62 / 0.97) 58%), #151b3e; border: 1px solid rgb(var(--ac-rgb) / 0.5);
+  box-shadow: 0 22px 54px -16px rgb(0 0 0 / 0.75), 0 0 44px -10px rgb(var(--ac-rgb) / 0.55); animation: cel-in 560ms var(--ease-spring) both; will-change: transform; }
+.cel-card.is-closing { animation: cel-out 240ms var(--ease) both; }
+@keyframes cel-in { from { opacity: 0; transform: translate3d(0, -28px, 0) scale(0.86); } to { opacity: 1; transform: none; } }
+@keyframes cel-out { to { opacity: 0; transform: translate3d(0, -14px, 0) scale(0.95); } }
+
+.cel-blip { position: relative; display: grid; place-items: center; width: 68px; height: 68px; flex: none; animation: cel-hop 900ms var(--ease-spring) 260ms both; }
+.cel-blip::before { content: ''; position: absolute; inset: -10px; border-radius: 50%; background: radial-gradient(circle, rgb(var(--ac-rgb) / 0.4), transparent 68%); animation: cel-glow 2.4s ease-in-out infinite; }
+.cel-blip > * { position: relative; }
+@keyframes cel-hop { 0% { transform: translate3d(0, 10px, 0) scale(0.6); opacity: 0; } 55% { transform: translate3d(0, -8px, 0) scale(1.08); opacity: 1; } 100% { transform: none; opacity: 1; } }
+@keyframes cel-glow { 0%, 100% { opacity: 0.65; transform: scale(0.94); } 50% { opacity: 1; transform: scale(1.08); } }
+
+.cel-body { min-width: 0; padding-block: 2px; }
+.cel-tag { display: inline-block; padding: 3px 9px; border-radius: 99px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.01em; color: var(--ac); background: rgb(var(--ac-rgb) / 0.15); border: 1px solid rgb(var(--ac-rgb) / 0.3); }
+.cel-title { margin-top: 6px; font-family: var(--font-head); font-size: 18px; font-weight: 700; letter-spacing: -0.015em; line-height: 1.2; color: var(--tx-0); }
+.cel-sub { margin-top: 3px; font-size: 13px; line-height: 1.45; color: var(--tx-1); }
+.cel-xp { display: flex; align-items: baseline; gap: 4px; padding: 6px 12px; border-radius: 14px; font-family: var(--font-head); font-weight: 700; font-size: 22px; line-height: 1; color: var(--ac); background: rgb(var(--ac-rgb) / 0.13); border: 1px solid rgb(var(--ac-rgb) / 0.28); animation: cel-pop 520ms var(--ease-spring) 380ms both; }
+.cel-xp::before { content: '+'; font-size: 18px; }
+.cel-xp small { font-size: 11px; font-weight: 700; opacity: 0.8; }
+@keyframes cel-pop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+
+/* Time left, drawn as a thin line that shrinks. Hovering pauses it. */
+.cel-time { position: absolute; left: 22px; right: 22px; bottom: 6px; height: 3px; border-radius: 3px; background: var(--ac); opacity: 0.55; transform-origin: left center; animation: cel-time var(--cel-dur, 4800ms) linear 280ms both; }
+.cel-card.is-paused .cel-time { animation-play-state: paused; }
+.cel-card.is-closing .cel-time { animation-play-state: paused; }
+@keyframes cel-time { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* Confetti: the outer piece drifts sideways, the inner one flies up and then falls. */
+.cel-confetti { position: absolute; left: 50%; top: 34px; width: 0; height: 0; pointer-events: none; }
+.cel-confetti b { position: absolute; left: 0; top: 0; display: block; animation: cf-x 1700ms cubic-bezier(0.12, 0.6, 0.28, 1) var(--d, 0ms) both; will-change: transform; }
+.cel-confetti b i { display: block; width: var(--w, 8px); height: var(--h, 12px); background: var(--cc, var(--a)); animation: cf-y 1700ms linear var(--d, 0ms) both; }
+@keyframes cf-x { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(var(--x), 0, 0); } }
+@keyframes cf-y {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg); opacity: 1; animation-timing-function: cubic-bezier(0.2, 0.7, 0.3, 1); }
+  32% { transform: translate3d(0, var(--up), 0) rotate(calc(var(--r) * 0.4)); opacity: 1; animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6); }
+  100% { transform: translate3d(0, var(--fall), 0) rotate(var(--r)); opacity: 0; }
+}
+
+/* Rank up: the big moment, centred on the screen. */
+.cel-card.is-big { top: 50%; translate: 0 -42%; width: min(380px, calc(100vw - 32px)); grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 74px 24px 30px; animation: cel-in-big 700ms var(--ease-spring) both; }
+.cel-card.is-big.is-closing { animation: cel-out 240ms var(--ease) both; }
+@keyframes cel-in-big { from { opacity: 0; transform: translate3d(0, 40px, 0) scale(0.82); } to { opacity: 1; transform: none; } }
+.cel-card.is-big .cel-blip { position: absolute; top: -62px; left: 50%; width: 118px; height: 118px; margin-left: -59px; }
+.cel-card.is-big .cel-blip::before { inset: -18px; }
+.cel-card.is-big .cel-confetti { top: 6px; }
+.cel-card.is-big .cel-title { font-size: 26px; margin-top: 10px; }
+.cel-card.is-big .cel-sub { font-size: 14px; margin-top: 6px; }
+.cel-card.is-big .cel-xp { margin-top: 4px; }
+.cel-card.is-big .cel-time { left: 28px; right: 28px; bottom: 10px; }
+.cel-ok { margin-top: 18px; height: 42px; padding: 0 30px; border-radius: 14px; font-size: 14.5px; font-weight: 700; color: #1a1300; background: linear-gradient(135deg, var(--c-gold), #ffb347); box-shadow: 0 10px 24px -10px rgb(var(--c-gold-rgb) / 0.8); transition: transform var(--t-fast) var(--ease-spring); }
+.cel-ok:active { transform: scale(0.95); }
+
+/* Topbar XP pill: a little bump and a floating +N whenever you earn XP. */
+.xp-pill { position: relative; }
+.xp-ic { display: inline-flex; }
+.xp-ic.is-bump { animation: xp-bump 720ms var(--ease-spring) both; }
+@keyframes xp-bump { 0% { transform: scale(1) rotate(0); } 35% { transform: scale(1.6) rotate(18deg); } 100% { transform: scale(1) rotate(0); } }
+.xp-float { position: absolute; right: 12px; top: 100%; z-index: 2; padding: 3px 9px; border-radius: 99px; font-size: 12.5px; font-weight: 700; color: var(--c-gold); background: #1b2147; border: 1px solid rgb(var(--c-gold-rgb) / 0.4); pointer-events: none; animation: xp-float 1600ms var(--ease) both; }
+@keyframes xp-float { 0% { opacity: 0; transform: translate3d(0, -6px, 0) scale(0.8); } 18% { opacity: 1; transform: translate3d(0, 4px, 0) scale(1); } 70% { opacity: 1; transform: translate3d(0, 10px, 0); } 100% { opacity: 0; transform: translate3d(0, 20px, 0); } }
+
+@media (max-width: 1100px) { .cel-card:not(.is-big) { top: calc(var(--topbar-h, 58px) + var(--safe-t, 0px) + 6px); } }
+@media (max-width: 480px) { .cel-card:not(.is-big) { grid-template-columns: auto minmax(0, 1fr); } .cel-card:not(.is-big) .cel-xp { grid-column: 2; justify-self: start; margin-top: 2px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .cel-confetti { display: none; }
+  .cel-card, .cel-scrim, .cel-blip, .cel-blip::before, .cel-xp, .cel-card.is-big { animation: fade 180ms ease both !important; }
+  .cel-time, .xp-ic, .xp-float { animation: none !important; }
+  .xp-float { opacity: 1; }
+}
+html[data-reduce-motion='true'] .cel-confetti { display: none; }
+html[data-reduce-motion='true'] :is(.cel-card, .cel-scrim, .cel-blip, .cel-blip::before, .cel-xp) { animation: fade 180ms ease both !important; }
+html[data-reduce-motion='true'] :is(.cel-time, .xp-ic, .xp-float) { animation: none !important; }

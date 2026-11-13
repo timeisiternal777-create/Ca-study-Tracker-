@@ -1,0 +1,192 @@
+/* ═════════════════════ Lanternfell: the Grounds screen around the map ═════════════════════
+   The same shape as the Sea chart's screen (journey, chart, panel and conditions, four people, houses, student, table), so the app feels the
+   same in either world, but every piece is Lanternfell's own. The map itself is styled in map/grounds.css. */
+
+.gr { display: flex; flex-direction: column; gap: 20px; }
+.gr-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.gr-title { font-family: var(--font-head); font-weight: 700; font-size: clamp(28px, 2.8vw, 38px); letter-spacing: 0.005em; line-height: 1.1; }
+.gr-sub { margin-top: 6px; color: var(--tx-1); font-size: 14.5px; }
+.gr-head-acts { display: flex; align-items: center; gap: 10px; }
+
+/* before the Choosing */
+.gr-prompt { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; align-items: center; background: radial-gradient(120% 170% at 0% 0%, rgb(246 190 90 / 0.17), transparent 56%), var(--surface); }
+.gr-prompt-copy h2 { font-family: var(--font-head); font-size: clamp(20px, 2vw, 26px); }
+.gr-prompt-copy p { margin-top: 6px; max-width: 58ch; font-size: 14.5px; line-height: 1.6; color: var(--tx-1); }
+
+/* the long way to Charter Night */
+.gr-journey { background: radial-gradient(120% 140% at 100% 0%, rgb(var(--a-rgb) / 0.11), transparent 55%), var(--surface); }
+.gr-j-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.gr-j-title { font-family: var(--font-head); font-weight: 700; font-size: clamp(20px, 2vw, 26px); letter-spacing: 0.005em; }
+.gr-j-sub { margin-top: 6px; color: var(--tx-1); font-size: 14px; max-width: 62ch; }
+.gr-j-pct { font-size: clamp(40px, 4vw, 56px); color: var(--a); }
+.gr-j-pct small { font-size: 0.45em; margin-left: 2px; opacity: 0.8; }
+.gr-track { position: relative; margin-top: 38px; --f: 0; }
+.gr-track-line { position: relative; height: 6px; border-radius: 99px; background: rgb(255 255 255 / 0.09); overflow: hidden; }
+.gr-track-line > i { position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(90deg, var(--a2), var(--a)); transform-origin: 0 50%; transform: scaleX(var(--f)); transition: transform 1.4s var(--ease); }
+.gr-marker { position: absolute; left: 0; top: -30px; width: 100%; display: flex; justify-content: flex-end; pointer-events: none; transform: translate3d(calc((var(--f) - 1) * 100%), 0, 0); transition: transform 1.4s var(--ease); }
+.gr-marker svg { margin-right: -15px; animation: gr-bob 3.4s ease-in-out infinite alternate; transform-origin: 50% 85%; }
+@keyframes gr-bob { from { transform: translate3d(0, -1px, 0) rotate(-4deg); } to { transform: translate3d(0, 2px, 0) rotate(4deg); } }
+.gr-node { position: absolute; top: -9px; width: 24px; height: 24px; margin-left: -12px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-2); border: 2px solid var(--line-3); color: var(--tx-2); }
+.gr-node svg { width: 12px; height: 12px; }
+.gr-node.n0 { left: 0; } .gr-node.n1 { left: 33.333%; } .gr-node.n2 { left: 66.666%; } .gr-node.n3 { left: 100%; }
+.gr-node.is-done { background: var(--a); border-color: var(--a); color: var(--on-a); box-shadow: 0 0 0 4px rgb(var(--a-rgb) / 0.18); }
+.gr-years { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 26px; }
+.gr-year { text-align: center; padding: 0 8px; }
+.gr-year b { display: block; font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--tx-0); }
+.gr-year span { display: block; margin-top: 3px; font-size: 12.5px; color: var(--tx-2); }
+.gr-year.is-current b { color: var(--a); }
+.gr-year.is-sailed span { color: var(--a2); }
+.gr-year.is-ahead { opacity: 0.6; }
+
+/* the chart card */
+.gr-chart { border-color: rgb(207 200 255 / 0.2); background: #060516; }
+.gr-chart-head { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 16px 12px; }
+.gr-chip { display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 13px; border-radius: 99px; background: rgb(255 255 255 / 0.06); border: 1px solid var(--line-2); font-size: 12.5px; color: var(--tx-1); }
+.gr-chip svg { width: 14px; height: 14px; color: var(--a); }
+.gr-chip small { margin-left: 3px; font-size: 12px; color: var(--tx-2); }
+.gr-chip--house { padding-left: 6px; }
+.gr-chip--house svg { color: inherit; }
+.gr-wind.is-tail { color: var(--a2); border-color: rgb(var(--a2-rgb) / 0.4); } .gr-wind.is-tail svg { color: var(--a2); }
+.gr-wind.is-cross { color: var(--a); border-color: rgb(var(--a-rgb) / 0.4); }
+.gr-wind.is-head { color: #ffa38c; border-color: rgb(255 163 140 / 0.4); } .gr-wind.is-head svg { color: #ffa38c; }
+.gr-empty { padding: 56px 16px; text-align: center; color: var(--tx-2); }
+.gr-legend { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 12px 16px 14px; list-style: none; font-size: 12.5px; color: var(--tx-2); border-top: 1px solid var(--line); }
+.gr-lg { display: inline-block; width: 11px; height: 11px; margin-right: 8px; border-radius: 50%; vertical-align: -1px; }
+.gr-lg--win { border-radius: 3px 3px 1px 1px; width: 9px; background: #ffd77a; box-shadow: 0 0 10px 2px rgb(255 200 106 / 0.5); }
+.gr-lg--mist { background: rgb(207 200 255 / 0.55); }
+.gr-lg--ivy { background: #4f9a5c; border: 1.5px solid #2c5f3a; }
+.gr-lg--storm { background: #2a2f52; border: 1.5px solid #a9b4ff; }
+.gr-lg--ghost { border: 1.5px dashed rgb(207 224 255 / 0.9); }
+
+/* the panel and the conditions */
+.gr-row { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 20px; align-items: stretch; }
+.gr-panel-empty { display: grid; place-items: center; align-content: center; gap: 8px; min-height: 220px; padding: 20px 12px; text-align: center; color: var(--tx-2); }
+.gr-panel-empty svg { width: 34px; height: 34px; color: var(--a); }
+.gr-panel-empty h3 { font-family: var(--font-head); font-size: 20px; color: var(--tx-0); }
+.gr-panel-empty p { max-width: 36ch; font-size: 13.5px; line-height: 1.55; }
+.gr-cond-list { display: flex; flex-direction: column; gap: 16px; list-style: none; }
+.gr-cond-list li { display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 12px; align-items: start; }
+.gr-cond-list .cd-ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: rgb(var(--a-rgb) / 0.13); color: var(--a); }
+.gr-cond-list .cd-ic svg { width: 18px; height: 18px; }
+.gr-cond-list b { display: block; font-size: 14.5px; color: var(--tx-0); }
+.gr-cond-list li > div > span { display: block; margin-top: 2px; font-size: 13.5px; line-height: 1.5; color: var(--tx-1); }
+
+/* one building, up close */
+.gr-bp { display: grid; grid-template-columns: minmax(150px, 36%) minmax(0, 1fr); gap: 20px; align-items: start; }
+.gr-bp-art { position: relative; display: grid; align-items: end; border-radius: 16px; overflow: hidden; padding: 10px 6px 0; background: radial-gradient(90% 60% at 24% 12%, rgb(255 242 200 / 0.14), transparent 60%), linear-gradient(#0b0a2a, #211c66 70%, #171446); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.08); }
+.gr-bp-art svg { display: block; width: 100%; height: auto; overflow: visible; }
+.gr-bp-art .lw, .gr-bp-art .lh { opacity: 0; }
+.gr-bp-art .lw.on, .gr-bp-art .lh.on { opacity: 1; }
+.gr-bp-art .pen { opacity: 0; }
+.gr-bp-art.is-cleared .pen { opacity: 1; }
+.gr-bp-art .sc-flag, .gr-bp-art .smoke { animation: none; }
+.gr-bp-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; }
+.gr-bp-head h3 { font-family: var(--font-head); font-size: 20px; line-height: 1.2; }
+.gr-bp-head p { margin-top: 2px; font-size: 13px; color: var(--tx-2); }
+.gr-bp-blurb { margin: 12px 0 0; font-family: var(--font-quote); font-style: italic; font-size: 14.5px; line-height: 1.55; color: var(--tx-1); }
+.gr-bp-bar { display: flex; align-items: center; gap: 14px; margin: 14px 0; }
+.gr-bp-bar > :first-child { flex: 1; }
+.gr-bp-bar b { font-size: 24px; color: var(--ac, var(--a)); }
+.gr-bp-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.gr-bp-stats > div { padding: 10px 12px; border-radius: 12px; background: rgb(255 255 255 / 0.04); border: 1px solid var(--line); }
+.gr-bp-stats dt { font-size: 11.5px; color: var(--tx-2); }
+.gr-bp-stats dd { margin-top: 5px; font-size: 19px; white-space: nowrap; }
+.gr-bp-stats dd small { display: block; margin-top: 2px; font: 500 12px var(--font-ui); color: var(--tx-2); letter-spacing: 0; white-space: normal; }
+.gr-bp-wx { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13.5px; color: var(--tx-1); }
+.gr-bp-wx svg { flex: none; width: 15px; height: 15px; color: var(--tx-2); }
+.gr-bp-wx.is-rough, .gr-bp-wx.is-rough svg { color: var(--c-gold); }
+.gr-bp-wx.is-storm, .gr-bp-wx.is-storm svg { color: var(--c-rose); }
+.gr-bp-wx.is-clear svg { color: var(--c-mint); }
+.gr-bp-how { margin: 10px 0 14px; font-size: 12.5px; line-height: 1.55; color: var(--tx-2); }
+
+/* the four who talk to you */
+.gr-teachers { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.gr-teacher { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.gr-teacher-body { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.gr-teacher-name b { display: block; font-family: var(--font-head); font-size: 16px; color: var(--tx-0); }
+.gr-teacher-name small { font-size: 12px; color: var(--tx-2); }
+.gr-say { position: relative; padding: 10px 12px; border-radius: 14px; background: rgb(255 255 255 / 0.055); border: 1px solid var(--line); font-family: var(--font-quote); font-style: italic; font-size: 14.5px; line-height: 1.5; color: var(--tx-0); text-align: left; }
+.gr-teacher-body .gr-say::before { content: ''; position: absolute; left: 50%; top: -6px; width: 10px; height: 10px; margin-left: -5px; transform: rotate(45deg); background: #1b1a48; border-left: 1px solid var(--line); border-top: 1px solid var(--line); }
+
+/* the four wells, the cup */
+.gr-wells { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 4px; }
+.gr-well { --hc: #2f4a78; --hm: #c9d2e8; position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 10px 14px; text-align: center; border-radius: var(--r-lg, 26px); border: 1px solid var(--line); background: rgb(255 255 255 / 0.03); }
+.gr-well:nth-child(2) { --hc: #1f6a66; --hm: #e6d6a0; }
+.gr-well:nth-child(3) { --hc: #b5472a; --hm: #e8b84a; }
+.gr-well:nth-child(4) { --hc: #7a5230; --hm: #e8b84a; }
+.gr-well.is-yours { border-color: color-mix(in srgb, var(--hm) 70%, transparent); background: linear-gradient(180deg, color-mix(in srgb, var(--hc) 30%, transparent), rgb(255 255 255 / 0.03)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--hm) 35%, transparent), 0 18px 34px -22px var(--hc); }
+.gr-well.is-cup::after { content: 'Holds the cup'; position: absolute; top: 10px; right: 10px; padding: 3px 9px; border-radius: 99px; background: #ffd77a; color: #2a1808; font-size: 11px; font-weight: 700; }
+.gr-well-name { font-family: var(--font-head); font-size: 16px; color: var(--tx-0); }
+.gr-well-virtue { font-size: 13.5px; color: var(--tx-1); }
+.gr-well-virtue b { font-size: 17px; color: var(--hm); }
+.gr-well-virtue small { color: var(--tx-2); }
+.gr-well-from { max-width: 22ch; font-size: 12px; line-height: 1.45; color: var(--tx-2); }
+.gr-cup { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(220px, 0.9fr); gap: 18px; align-items: center; margin-top: 18px; padding: 14px 16px; border-radius: var(--r-lg, 26px); background: rgb(255 255 255 / 0.04); border: 1px solid var(--line); }
+.gr-cup > div > b { display: block; font-size: 15px; color: var(--tx-0); }
+.gr-cup > div > span { display: block; margin-top: 3px; font-size: 13px; line-height: 1.5; color: var(--tx-1); }
+.gr-cup--none > div { grid-column: 1 / 3; }
+.gr-cup-bars { display: grid; gap: 7px; list-style: none; }
+.gr-cup-bars li { display: grid; grid-template-columns: 86px minmax(0, 1fr) 28px; gap: 10px; align-items: center; font-size: 12.5px; color: var(--tx-2); }
+.gr-cup-bars i { position: relative; height: 7px; border-radius: 99px; background: rgb(255 255 255 / 0.09); overflow: hidden; }
+.gr-cup-bars i::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: var(--w); border-radius: inherit; background: color-mix(in srgb, var(--c) 58%, #fff); }
+.gr-cup-bars b { text-align: right; color: var(--tx-1); font-size: 13px; }
+
+/* your student, and finishing a year */
+.gr-row--stu { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: start; }
+.gr-stu-grid { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; align-items: start; }
+.gr-stu-view { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.gr-edit { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px; }
+.gr-edit > :first-child, .gr-edit > :nth-last-child(-n + 2) { grid-column: 1 / -1; }
+.gr-edit .seg { width: 100%; }
+.gr-edit .seg > button { padding: 0 8px; }
+.gr-sw { display: flex; flex-wrap: wrap; gap: 8px; }
+.gr-swatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgb(255 255 255 / 0.22); cursor: pointer; transition: transform 0.16s var(--spring-snap), border-color 0.16s, box-shadow 0.16s; }
+.gr-swatch:hover { transform: scale(1.08); }
+.gr-swatch:focus-visible { outline: 2px solid var(--a); outline-offset: 2px; }
+.gr-swatch.is-on { border-color: var(--a); box-shadow: 0 0 0 3px rgb(var(--a-rgb) / 0.3); transform: scale(1.1); }
+.gr-finish { display: flex; flex-direction: column; }
+
+/* every building, as a table */
+.gr-table-wrap { overflow-x: auto; margin: 0 -4px; }
+.gr-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.gr-table th, .gr-table td { padding: 11px 12px; text-align: left; vertical-align: middle; white-space: nowrap; }
+.gr-table thead th { font-size: 12px; font-weight: 600; color: var(--tx-2); border-bottom: 1px solid var(--line-2); }
+.gr-table tbody tr { cursor: pointer; border-bottom: 1px solid var(--line); transition: background 0.15s; }
+.gr-table tbody tr:hover { background: rgb(255 255 255 / 0.04); }
+.gr-table tbody tr.is-selected { background: rgb(var(--ac-rgb) / 0.1); }
+.gr-table tbody th { font-weight: 600; color: var(--tx-0); }
+.gr-table tbody th .abbr { margin-right: 10px; }
+.gr-cell-bar { display: flex; align-items: center; gap: 10px; min-width: 170px; }
+.gr-cell-bar > :first-child { flex: 1; }
+.gr-note { display: flex; gap: 10px; max-width: 96ch; font-size: 13px; line-height: 1.6; color: var(--tx-2); }
+.gr-note svg { flex: none; width: 16px; height: 16px; margin-top: 3px; color: var(--a); }
+
+/* shown until the Lanternfell world is chosen */
+.gr-invite { display: grid; place-items: center; padding: 12px 0 32px; }
+.gr-invite-card { width: 100%; max-width: 780px; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+.gr-invite-art { display: flex; align-items: flex-end; justify-content: center; gap: 2px; }
+.gr-invite-title { font-family: var(--font-head); font-size: clamp(28px, 3vw, 40px); letter-spacing: 0.005em; }
+.gr-invite-text { max-width: 60ch; font-size: 15px; line-height: 1.65; color: var(--tx-1); }
+.gr-invite-card .row { justify-content: center; }
+
+@media (max-width: 1000px) {
+  .gr-row, .gr-row--stu { grid-template-columns: minmax(0, 1fr); }
+  .gr-stu-grid { grid-template-columns: minmax(0, 1fr); }
+  .gr-bp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gr-wells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gr-cup { grid-template-columns: auto minmax(0, 1fr); }
+  .gr-cup-bars { grid-column: 1 / -1; }
+}
+@media (max-width: 760px) {
+  .gr-bp { grid-template-columns: minmax(0, 1fr); }
+  .gr-bp-art { max-width: 260px; }
+  .gr-prompt { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+}
+@media (max-width: 640px) {
+  .gr-years { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .gr-year { text-align: left; }
+  .gr-edit { grid-template-columns: minmax(0, 1fr); }
+  .gr-j-head { flex-direction: column; }
+  .gr-wells { gap: 10px; }
+}
+html[data-motion='calm'] .gr-marker svg, html[data-motion='still'] .gr-marker svg { animation: none; }

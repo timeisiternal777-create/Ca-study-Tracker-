@@ -1,0 +1,98 @@
+/* ═════════════════════════ iOS-style overlays: sheets, alerts, toasts, timer capsule ═════════════════════════
+   Sheets rise from the bottom of the screen and follow your finger when you drag them down (hooks/useSheetDrag.ts).
+   Alerts pop in with a small spring and have their buttons in a row under hairlines. All of this sits under html[data-ui='ios']. */
+
+/* ───────── Sheets ───────── */
+/* The dim is its own layer (the scrim itself never fades), so the sheet stays fully opaque while the dimming comes in. */
+html[data-ui='ios'] .scrim, html[data-ui='ios'] .scrim[data-closing] { background: none; animation: none; }
+html[data-ui='ios'] .scrim::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: rgb(var(--scrim-rgb) / calc(0.5 * var(--scrim-o, 1)));
+  animation: fade 320ms var(--ios-ease) backwards;
+}
+html[data-ui='ios'] .scrim[data-closing='true']::before { animation: fade-out 340ms var(--ios-ease) both; }
+html[data-ui='ios'] .scrim[data-closing='drag']::before { animation: none; }
+@keyframes ios-sheet-in { from { transform: translate3d(0, var(--sheet-from, calc(50dvh + 50%)), 0); } }
+@keyframes ios-sheet-out { to { transform: translate3d(0, var(--sheet-from, calc(50dvh + 50%)), 0); } }
+
+html[data-ui='ios'] .modal {
+  border: 0; border-radius: 36px; corner-shape: squircle; touch-action: none;
+  box-shadow: var(--shadow-pop), inset 0 0.5px 0 rgb(255 255 255 / 0.17);
+  animation: ios-sheet-in 560ms var(--ios-ease) backwards;
+}
+html[data-ui='ios'] .scrim[data-closing='true'] .modal { animation: ios-sheet-out 360ms var(--ios-ease) both; }
+html[data-ui='ios'] .scrim[data-closing='drag'] .modal { animation: none; }
+html[data-ui='ios'] .modal.is-dragging { will-change: transform; user-select: none; -webkit-user-select: none; }
+html[data-ui='ios'] .modal::before { display: none; }
+
+/* The grabber: also the place to take hold of a tall sheet that scrolls. */
+.modal-grab { display: none; }
+html[data-ui='ios'] .modal-grab { display: block; position: relative; flex: none; align-self: center; width: 38px; height: 5px; margin: 9px 0 0; border-radius: 3px; background: rgb(255 255 255 / 0.3); touch-action: none; cursor: grab; }
+html[data-ui='ios'] .modal-grab::after { content: ''; position: absolute; inset: -14px -30px; }
+html[data-ui='ios'] .modal.is-dragging .modal-grab { cursor: grabbing; }
+html[data-ui='ios'] .modal-head { padding: 12px 22px 4px 28px; touch-action: none; }
+html[data-ui='ios'] .modal-title { font-size: 22px; letter-spacing: -0.022em; }
+html[data-ui='ios']:is([data-world='voyage'], [data-world='academy']) .modal-title { letter-spacing: 0.005em; }
+html[data-ui='ios'] .modal-desc { font-size: 14.5px; color: var(--tx-2); }
+html[data-ui='ios'] .modal-body { padding: 12px 28px 24px; touch-action: none; }
+html[data-ui='ios'] .modal-body[data-scroll='yes'] { touch-action: pan-y; }
+html[data-ui='ios'] .modal-foot { padding: 14px 28px 26px; touch-action: none; }
+html[data-ui='ios'] .modal-close { --h: 32px; margin-top: 2px; background: var(--fill-1); color: var(--tx-1); }
+@media (hover: hover) { html[data-ui='ios'] .modal-close:hover { background: rgb(255 255 255 / 0.17); color: var(--tx-0); } }
+html[data-ui='ios'] .modal-close svg { width: 15px; height: 15px; }
+@media (max-width: 640px) {
+  html[data-ui='ios'] .scrim { --sheet-from: 100%; }
+  html[data-ui='ios'] .modal, html[data-ui='ios'] .modal--sm, html[data-ui='ios'] .modal--wide, html[data-ui='ios'] .modal--xl {
+    border-radius: 36px 36px 0 0; animation: ios-sheet-in 560ms var(--ios-ease) backwards;
+  }
+  html[data-ui='ios'] .scrim[data-closing='true'] .modal { animation: ios-sheet-out 360ms var(--ios-ease) both; }
+  html[data-ui='ios'] .scrim[data-closing='drag'] .modal { animation: none; }
+  html[data-ui='ios'] .modal-head { padding: 12px 20px 4px 22px; }
+  html[data-ui='ios'] .modal-body { padding: 10px 22px 18px; }
+  html[data-ui='ios'] .modal-foot { padding: 12px 22px 22px; }
+}
+
+/* ───────── Alerts (the confirm dialogs) ───────── */
+.ios-alert-scrim { position: fixed; inset: 0; z-index: 110; display: grid; place-items: center; padding: 24px; background: rgb(var(--scrim-rgb, 0 0 0) / 0.4); animation: fade 240ms var(--ios-ease) backwards; overscroll-behavior: contain; }
+.ios-alert-scrim[data-closing='true'] { animation: fade-out 200ms var(--ios-ease) both; }
+.ios-alert {
+  width: min(300px, 100%); overflow: hidden; text-align: center; color: var(--tx-0); corner-shape: squircle;
+  border-radius: 32px; background: rgb(var(--glass-rgb) / 0.8); -webkit-backdrop-filter: blur(40px) saturate(1.8); backdrop-filter: blur(40px) saturate(1.8);
+  box-shadow: var(--glass-rim), 0 34px 90px -24px rgb(0 0 0 / 0.85);
+  animation: ios-alert-in var(--ios-spring-snappy-d) var(--ios-spring-snappy) backwards;
+}
+.ios-alert-scrim[data-closing='true'] .ios-alert { animation: ios-alert-out 200ms var(--ios-ease) both; }
+@keyframes ios-alert-in { from { opacity: 0; transform: scale(1.16); } 30% { opacity: 1; } }
+@keyframes ios-alert-out { to { opacity: 0; transform: scale(0.94); } }
+.ios-alert-body { padding: 22px 20px 20px; }
+.ios-alert h2 { font-family: var(--font-ui); font-size: 17px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.25; }
+.ios-alert-msg { margin-top: 6px; font-size: 14px; line-height: 1.4; color: var(--tx-1); }
+.ios-alert-actions { display: flex; border-top: 0.5px solid rgb(255 255 255 / 0.17); }
+.ios-alert-actions.is-stacked { flex-direction: column; }
+.ios-alert-actions button { flex: 1 1 0; min-height: 50px; padding: 0 12px; font-size: 17px; letter-spacing: -0.02em; color: var(--a); transition: background-color 90ms; }
+.ios-alert-actions button + button { border-left: 0.5px solid rgb(255 255 255 / 0.17); }
+.ios-alert-actions.is-stacked button + button { border-left: 0; border-top: 0.5px solid rgb(255 255 255 / 0.17); }
+.ios-alert-actions button:active { background: rgb(255 255 255 / 0.12); }
+.ios-alert-actions button.is-main { font-weight: 600; }
+.ios-alert-actions button.is-danger { color: #ff6b81; }
+
+/* ───────── Toasts: glass capsules that spring in ───────── */
+html[data-ui='ios'] .toast {
+  border: 0; border-radius: 26px; background: var(--glass-bg-solid); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-rim), 0 22px 48px -18px rgb(0 0 0 / 0.8);
+  animation: ios-toast-in var(--ios-spring-bouncy-d) var(--ios-spring-bouncy) backwards; touch-action: none;
+}
+@keyframes ios-toast-in { from { opacity: 0; transform: translate3d(0, 26px, 0) scale(0.9); } 18% { opacity: 1; } }
+html[data-ui='ios'] .toast[data-closing='true'] { animation: toast-out 220ms var(--ios-ease) both; }
+html[data-ui='ios'] .toast.is-dragging { will-change: transform; }
+html[data-ui='ios'] .toast-icon { border-radius: 50%; }
+
+/* ───────── The timer capsule: a black island in the top bar ───────── */
+html[data-ui='ios'] .tpill {
+  height: 40px; background: #000; border: 0;
+  box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.15), inset 0 0.5px 0 rgb(255 255 255 / 0.12), 0 12px 30px -10px rgb(0 0 0 / 0.9);
+  animation: ios-pill-in var(--ios-spring-bouncy-d) var(--ios-spring-bouncy) backwards;
+}
+html[data-ui='ios'] .tpill::before { box-shadow: 0 0 22px -4px rgb(var(--ac-rgb) / 0.5); }
+html[data-ui='ios'] .tpill button { height: 34px; min-width: 34px; }
+@keyframes ios-pill-in { from { opacity: 0; transform: scale(0.5); } 14% { opacity: 1; } }

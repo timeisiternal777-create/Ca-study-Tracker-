@@ -1,0 +1,25 @@
+.mk-grid { display: grid; gap: 20px; align-items: start; }
+@media (min-width: 1240px) { .mk-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); } }
+.mk-entry { display: flex; flex-direction: column; gap: 18px; }
+.mk-count { margin-left: 2px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; display: inline-grid; place-items: center; font-size: 11px; background: rgb(255 255 255 / 0.1); color: var(--tx-1); }
+.mk-subname { margin-top: -6px; flex-wrap: wrap; }
+.mk-subname .t-xs { margin-left: auto; }
+.mk-dial { display: grid; justify-items: center; gap: 12px; padding: 8px 0 0; }
+.mk-dial-in { display: grid; justify-items: center; gap: 2px; }
+.mk-num { display: flex; align-items: baseline; justify-content: center; gap: 2px; }
+.mk-num input { width: 3.1ch; text-align: right; font-size: 68px; font-weight: 800; letter-spacing: -0.04em; background: none; border: 0; outline: 0; color: var(--tx-0); padding: 0; font-variant-numeric: tabular-nums; caret-color: var(--ac); }
+.mk-num span { font-size: 20px; color: var(--tx-2); font-weight: 600; }
+.mk-hint { margin-top: -4px; }
+.mk-tune { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 14px; align-items: center; }
+.mk-quick { justify-content: center; }
+.mk-ledger { overflow: hidden; }
+@media (min-width: 1240px) { .mk-ledger { position: sticky; top: calc(var(--topbar-h) + 16px); max-height: calc(100dvh - var(--topbar-h) - 40px); display: flex; flex-direction: column; } .mk-list { overflow-y: auto; } }
+.mk-ledger-head { display: grid; gap: 14px; padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+.mk-list { list-style: none; margin: 0; padding: 6px 12px 14px; overscroll-behavior: contain; }
+.mk-row { display: flex; align-items: center; gap: 12px; padding: 12px 8px; border-bottom: 1px solid var(--line); content-visibility: auto; contain-intrinsic-size: auto 62px; }
+.mk-row:last-child { border-bottom: 0; }
+.mk-score { font-size: 22px; min-width: 64px; text-align: right; }
+.mk-score small { font-family: var(--font-ui); font-size: 12px; color: var(--tx-2); font-weight: 500; }
+.mk-del { width: 36px; height: 36px; flex: none; }
+@media (hover: hover) { .mk-del:hover { color: var(--bad); border-color: rgb(var(--bad-rgb) / 0.4); } }
+@media (max-width: 640px) { .mk-row { flex-wrap: wrap; } .mk-row .tag { order: 5; } .mk-num input { font-size: 58px; } }

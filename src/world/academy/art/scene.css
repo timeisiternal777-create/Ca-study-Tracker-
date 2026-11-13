@@ -1,0 +1,21 @@
+/* The school at night. Layers sit still; only mist, flags and fireflies move, and only with transform and opacity. */
+.sc { position: relative; width: 100%; aspect-ratio: 16 / 9; overflow: hidden; background: #060516; line-height: 0; }
+.sc-l { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.sc-mist { opacity: 0.55; will-change: transform; animation: sc-drift 90s ease-in-out infinite alternate; }
+@keyframes sc-drift { from { transform: translate3d(-3%, 0, 0); } to { transform: translate3d(3%, 0, 0); } }
+
+.sc-flag { transform-box: fill-box; transform-origin: 0 50%; animation: sc-flag 3.4s ease-in-out infinite alternate; }
+@keyframes sc-flag { from { transform: skewY(-3deg) scaleX(1); } to { transform: skewY(3deg) scaleX(0.9); } }
+
+/* fireflies */
+.ff { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.ff i { position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #ffe9a6; box-shadow: 0 0 8px 2px rgb(255 214 120 / 0.7); opacity: 0; will-change: transform, opacity; animation: ff-fly var(--ff-d, 10s) ease-in-out infinite; animation-delay: var(--ff-t, 0s); }
+@keyframes ff-fly {
+  0% { opacity: 0; transform: translate3d(0, 0, 0); } 18% { opacity: 0.9; } 50% { opacity: 0.35; transform: translate3d(calc(var(--ff-x, 40px) * 0.5), calc(var(--ff-y, -30px) * 0.6), 0); }
+  78% { opacity: 0.95; } 100% { opacity: 0; transform: translate3d(var(--ff-x, 40px), var(--ff-y, -30px), 0); }
+}
+
+html[data-motion='calm'] .sc-flag, html[data-motion='calm'] .sc-mist { animation: none; }
+html[data-motion='calm'] .ff i { animation: none; opacity: 0.55; }
+html[data-motion='still'] .sc-flag, html[data-motion='still'] .sc-mist { animation: none; }
+html[data-motion='still'] .ff i { animation: none; opacity: 0.5; }

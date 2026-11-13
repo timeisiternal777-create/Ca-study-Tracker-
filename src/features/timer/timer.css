@@ -1,0 +1,166 @@
+/* ═════════════════════════ Study timer ═════════════════════════
+   Everything that moves on its own here is a transform or an opacity change on a layer that holds a still picture
+   (the comet, the soft glow, the pulse rings, the drifting light). The ring that fills is redrawn once a second, like a watch. */
+
+.dash > .timer { grid-column: 1 / -1; }
+
+/* ───────── Clock digits ───────── */
+.clk { display: inline-flex; align-items: baseline; font-family: var(--font-num); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.035em; line-height: 1; color: var(--tx-0); font-size: calc(var(--s, 236px) * 0.215); white-space: nowrap; }
+.clk[data-len='7'] { font-size: calc(var(--s, 236px) * 0.172); }
+.clk[data-len='8'] { font-size: calc(var(--s, 236px) * 0.152); }
+.roll { position: relative; display: inline-block; }
+.roll-in { display: inline-block; animation: roll-in 340ms var(--ease) backwards; }
+.roll-out { position: absolute; left: 0; top: 0; pointer-events: none; animation: roll-out 280ms var(--ease) both; }
+@keyframes roll-in { from { transform: translateY(0.42em); opacity: 0; } }
+@keyframes roll-out { to { transform: translateY(-0.42em); opacity: 0; } }
+.clk-colon { font-style: normal; margin: 0 0.02em; transform: translateY(-0.06em); opacity: 0.85; }
+.clk.is-live .clk-colon { animation: clk-colon 2s ease-in-out infinite; }
+@keyframes clk-colon { 0%, 100% { opacity: 0.9; } 50% { opacity: 0.35; } }
+
+/* ───────── The dial ───────── */
+.tdial { position: relative; width: var(--s, 236px); height: var(--s, 236px); flex: none; isolation: isolate; }
+.tdial-glow { position: absolute; inset: -16%; z-index: -1; border-radius: 50%; pointer-events: none; opacity: 0.45;
+  background: radial-gradient(closest-side, rgb(var(--ac-rgb) / 0.34), rgb(var(--ac-rgb) / 0.1) 55%, transparent 74%); }
+.tdial[data-status='running'] .tdial-glow { animation: tdial-breathe 4.6s ease-in-out infinite; }
+@keyframes tdial-breathe { 0%, 100% { opacity: 0.36; transform: scale(0.95); } 50% { opacity: 0.8; transform: scale(1.04); } }
+.tdial-svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.tdial-sweep { position: absolute; inset: 0; border-radius: 50%; pointer-events: none; will-change: transform; animation: tdial-spin 60s linear infinite;
+  background: conic-gradient(from 0deg, transparent 0deg, transparent 296deg, rgb(var(--ac-rgb) / 0.1) 326deg, rgb(var(--ac-rgb) / 0.62) 359deg, transparent 360deg);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 17px), #000 calc(100% - 16px), #000 calc(100% - 3px), transparent calc(100% - 2px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 17px), #000 calc(100% - 16px), #000 calc(100% - 3px), transparent calc(100% - 2px)); }
+.tdial-sweep::after { content: ''; position: absolute; left: 50%; top: 3px; width: 11px; height: 11px; margin-left: -5.5px; border-radius: 50%; background: #fff; box-shadow: 0 0 10px 2px rgb(var(--ac-rgb) / 0.95); }
+.tdial[data-status='paused'] .tdial-sweep { opacity: 0.45; }
+@keyframes tdial-spin { to { transform: rotate(360deg); } }
+.tdial-pulse { position: absolute; inset: 0; z-index: 0; border-radius: 50%; border: 3px solid var(--ac); pointer-events: none; animation: tdial-pulse 1400ms var(--ease) both; }
+@keyframes tdial-pulse { from { transform: scale(1); opacity: 0.85; } to { transform: scale(1.3); opacity: 0; } }
+.tdial-mid { position: absolute; inset: 12%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: calc(var(--s, 236px) * 0.026); text-align: center; }
+.tdial-top { font-size: calc(var(--s, 236px) * 0.054); font-weight: 700; letter-spacing: 0.08em; color: var(--ac); }
+.tdial-bot { font-size: calc(var(--s, 236px) * 0.052); font-weight: 500; color: var(--tx-2); }
+.live-dot { position: relative; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ac); flex: none; }
+.live-dot::after { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--ac); animation: live-ping 1.9s ease-out infinite; }
+@keyframes live-ping { from { transform: scale(1); opacity: 0.65; } to { transform: scale(3.2); opacity: 0; } }
+
+/* ───────── The card on the dashboard ───────── */
+.tcard { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px 40px; align-items: center; padding: 28px 36px 28px 32px; isolation: isolate;
+  background: radial-gradient(620px 300px at 4% 0%, rgb(var(--ac-rgb, var(--a-rgb)) / 0.15), transparent 72%), linear-gradient(180deg, rgb(255 255 255 / 0.055), rgb(255 255 255 / 0.02)); }
+.tcard--live { border-color: rgb(var(--ac-rgb) / 0.34); }
+.tcard--live[data-status='paused'] { border-color: var(--line-2); }
+.tcard-dialwrap { display: grid; place-items: center; padding: 14px; }
+.tcard-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.tcard-head { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.tcard-title { margin: 0; font-family: var(--font-head); font-weight: 700; font-size: clamp(22px, 2.1vw, 30px); letter-spacing: -0.02em; line-height: 1.15; }
+.tcard-cap { margin: 0; color: var(--tx-1); font-size: 14.5px; line-height: 1.45; max-width: 60ch; }
+.tcard-since { font-size: 12.5px; color: var(--tx-2); }
+.tcard-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.tcard-chips { display: flex; flex-wrap: wrap; gap: 9px; }
+.tcard-chips .chip { height: 44px; padding: 0 16px; font-size: 14px; font-weight: 600; gap: 9px; border-radius: 14px; }
+.tcard-chips .chip small { font-size: 11.5px; font-weight: 500; color: var(--tx-2); }
+.tcard-today { display: grid; gap: 8px; }
+.tcard-today > div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; color: var(--tx-2); }
+.tcard-today b { color: var(--tx-0); font-weight: 600; }
+.tcard-list { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; padding-top: 18px; border-top: 1px solid var(--line); margin-top: 6px; }
+.tcard-list h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--tx-1); display: flex; justify-content: space-between; }
+
+/* The big round button when nothing is running */
+.tplay { position: relative; width: 116px; height: 116px; border-radius: 50%; display: grid; place-items: center; color: var(--on-a); flex: none;
+  background: linear-gradient(145deg, var(--a), var(--a2)); box-shadow: 0 18px 38px -14px rgb(var(--a-rgb) / 0.85), inset 0 1px 0 rgb(255 255 255 / 0.42);
+  transition: transform var(--t-med) var(--ease-spring); }
+.tplay svg { width: 42px; height: 42px; margin-left: 5px; fill: currentColor; stroke: currentColor; }
+.tplay:active { transform: scale(0.93); }
+@media (hover: hover) { .tplay:hover { transform: scale(1.06); } }
+.tplay-ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid rgb(var(--a-rgb) / 0.6); pointer-events: none; animation: tplay-ring 3.4s var(--ease) infinite; }
+.tplay-ring--2 { animation-delay: 1.7s; }
+@keyframes tplay-ring { 0% { transform: scale(1); opacity: 0.7; } 72%, 100% { transform: scale(1.75); opacity: 0; } }
+.tplay-wrap { display: grid; place-items: center; padding: 18px; }
+.tagain { display: inline-flex; align-items: center; gap: 8px; align-self: flex-start; height: 34px; padding: 0 12px 0 10px; border-radius: 99px; font-size: 13px; font-weight: 600; color: var(--tx-1); background: rgb(255 255 255 / 0.05); border: 1px solid var(--line); transition: background var(--t-fast), border-color var(--t-fast); }
+.tagain svg { width: 14px; height: 14px; color: var(--ac, var(--a)); }
+@media (hover: hover) { .tagain:hover { background: rgb(var(--ac-rgb, var(--a-rgb)) / 0.12); border-color: rgb(var(--ac-rgb, var(--a-rgb)) / 0.4); } }
+
+/* ───────── Today's sessions ───────── */
+.tses-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.tses { display: grid; grid-template-columns: auto minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 9px 10px 9px 12px; border-radius: 14px; background: rgb(255 255 255 / 0.035); border: 1px solid var(--line); animation: tses-in 520ms var(--spring-soft) both; }
+.tses:first-child[data-new] { border-color: rgb(var(--ac-rgb) / 0.5); background: rgb(var(--ac-rgb) / 0.09); }
+@keyframes tses-in { from { transform: translateY(10px); opacity: 0; } }
+.tses-mins { font-family: var(--font-num); font-weight: 700; font-size: 16px; font-variant-numeric: tabular-nums; }
+.tses-wait { font-size: 12px; color: var(--c-gold); }
+
+/* ───────── The clock in the top bar ───────── */
+.tpill { position: relative; display: inline-flex; align-items: center; gap: 2px; height: 38px; padding: 3px; border-radius: 99px; isolation: isolate;
+  background: linear-gradient(180deg, rgb(var(--ac-rgb) / 0.17), rgb(var(--ac-rgb) / 0.07)); border: 1px solid rgb(var(--ac-rgb) / 0.46); animation: tpill-in 560ms var(--spring-soft) backwards; }
+.tpill::before { content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; pointer-events: none; box-shadow: 0 0 22px -2px rgb(var(--ac-rgb) / 0.7); opacity: 0.4; }
+.tpill[data-status='running']::before { animation: tpill-glow 3.6s ease-in-out infinite; }
+@keyframes tpill-glow { 0%, 100% { opacity: 0.22; } 50% { opacity: 0.85; } }
+@keyframes tpill-in { from { transform: translateY(-10px) scale(0.9); opacity: 0; } }
+.tpill button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 30px; min-width: 30px; border-radius: 99px; color: var(--tx-0); transition: background var(--t-fast), transform var(--t-fast) var(--ease); }
+.tpill button:active { transform: scale(0.93); }
+@media (hover: hover) { .tpill button:hover { background: rgb(255 255 255 / 0.1); } }
+.tpill .tpill-main { padding: 0 10px 0 11px; }
+.tpill .clk { font-size: 16px; }
+.tpill svg { width: 15px; height: 15px; }
+.tpill-abbr { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; color: var(--ac); }
+.tpill[data-status='paused'] .live-dot { background: var(--tx-3); }
+.tpill[data-status='paused'] .live-dot::after { display: none; }
+.tpill[data-status='paused'] .clk { color: var(--tx-1); }
+.tpill-stop { color: var(--ac); }
+@media (max-width: 640px) { .topbar[data-timer] .topbar-title, .topbar[data-timer] .xp-rank { display: none; } }
+@media (max-width: 430px) { .tpill-abbr { display: none; } }
+
+/* ───────── Focus mode ───────── */
+html[data-focus] .shell { visibility: hidden; }
+.tfocus { position: fixed; inset: 0; z-index: 90; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; overflow: hidden; isolation: isolate; padding: calc(18px + var(--safe-t)) 28px calc(22px + var(--safe-b)); background: none; animation: tfocus-in 460ms var(--ease) backwards; }
+.tfocus[data-closing='true'] { animation: tfocus-out 260ms ease both; }
+@keyframes tfocus-in { from { opacity: 0; transform: scale(1.02); } }
+@keyframes tfocus-out { to { opacity: 0; transform: scale(1.015); } }
+.tfocus-bg { position: absolute; inset: 0; z-index: -3; background: radial-gradient(120% 85% at 50% -5%, rgb(var(--ac-rgb) / 0.2), transparent 62%), radial-gradient(90% 70% at 50% 112%, rgb(var(--a2-rgb) / 0.18), transparent 62%), rgb(3 5 12 / 0.7); }
+.tfocus-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tfocus-top .t-small { color: var(--tx-2); }
+.tfocus-mid { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(14px, 3vh, 30px); min-height: 0; text-align: center; }
+.tfocus .tdial { --s: clamp(150px, min(54vmin, calc(100dvh - 452px)), 560px); }
+.tfocus-mid:focus { outline: none; }
+@media (max-height: 700px) { .tfocus-cap, .tfocus-topic { display: none; } .tfocus .tdial { --s: clamp(150px, calc(100dvh - 300px), 400px); } }
+.tfocus-name { margin: 0; font-family: var(--font-head); font-weight: 700; font-size: clamp(22px, 3.4vmin, 38px); letter-spacing: -0.02em; }
+.tfocus-cap { margin: 0; color: var(--tx-1); font-size: clamp(14px, 2vmin, 18px); max-width: 52ch; min-height: 1.5em; }
+.tfocus-topic { width: min(560px, 86vw); }
+.tfocus-ctl { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; }
+.tfocus-ctl .btn--lg { min-width: 150px; }
+.tfocus-foot { display: grid; gap: 8px; width: min(560px, 100%); margin: 14px auto 0; }
+.tfocus-foot > div { display: flex; justify-content: space-between; font-size: 13px; color: var(--tx-2); }
+.tfocus-foot b { color: var(--tx-0); font-weight: 600; }
+
+/* ───────── Start sheet ───────── */
+.tsheet-chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 9px; }
+.tsheet-chips .chip { justify-content: flex-start; height: 48px; border-radius: 14px; font-weight: 600; }
+.tsheet-name { font-size: 13px; color: var(--tx-2); min-height: 1.4em; }
+
+/* ───────── Prompts ───────── */
+.tprompt-nums { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tprompt-nums > div { padding: 12px 14px; border-radius: 14px; background: rgb(255 255 255 / 0.04); border: 1px solid var(--line); display: grid; gap: 4px; }
+.tprompt-nums b { font-family: var(--font-num); font-size: 24px; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.tprompt-nums span { font-size: 12.5px; color: var(--tx-2); }
+.tprompt-actions { display: grid; gap: 10px; }
+
+/* ───────── Narrow screens ───────── */
+@media (max-width: 900px) {
+  .tcard { grid-template-columns: minmax(0, 1fr); justify-items: center; padding: 22px 18px; gap: 10px; }
+  .tcard-main { width: 100%; }
+  .tcard-head { align-items: center; text-align: center; }
+  .tcard-actions { justify-content: center; }
+  .tcard-chips { justify-content: center; }
+  .tagain { align-self: center; }
+  .tcard .tdial { --s: min(76vw, 280px); }
+  .tfocus { padding-left: 16px; padding-right: 16px; }
+  .tfocus .tdial { --s: min(78vw, 56dvh); }
+}
+@media (max-width: 520px) {
+  .tses { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .tses > :nth-child(4) { grid-column: 1 / -1; justify-self: end; }
+}
+
+/* ───────── Calm and still ───────── */
+@media (prefers-reduced-motion: reduce) {
+  .tplay-ring, .live-dot::after, .tdial-glow, .tdial-sweep, .clk-colon, .tdial-pulse, .tpill::before { animation: none !important; }
+  .roll-in, .roll-out { animation: none !important; } .roll-out { display: none; }
+}
+html[data-reduce-motion='true'] :is(.tplay-ring, .live-dot::after, .tdial-glow, .tdial-sweep, .clk-colon, .tdial-pulse, .tpill::before) { animation: none !important; }
+html[data-reduce-motion='true'] :is(.roll-in, .roll-out) { animation: none !important; }
+html[data-reduce-motion='true'] .roll-out { display: none; }

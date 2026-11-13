@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile with student metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "StudyLog": {
+      "title": "StudyLog",
+      "description": "A single study session entry",
+      "type": "object",
+      "properties": {
+        "subject": { "type": "string" },
+        "chapter": { "type": "string" },
+        "hours": { "type": "number" },
+        "date": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["subject", "chapter", "hours", "date"]
+    },
+    "MockLog": {
+      "title": "MockLog",
+      "description": "Mock exam test score performance",
+      "type": "object",
+      "properties": {
+        "subject": { "type": "string" },
+        "score": { "type": "number" },
+        "totalMarks": { "type": "number" },
+        "date": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["subject", "score", "totalMarks", "date"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "Onboarding & learning configurations",
+      "type": "object",
+      "properties": {
+        "onboardingCompleted": { "type": "boolean" },
+        "dailyGoalHours": { "type": "number" },
+        "targetExamDate": { "type": "string" }
+      },
+      "required": ["onboardingCompleted", "dailyGoalHours", "targetExamDate"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/profile": {
+      "schema": "UserProfile",
+      "description": "The student user personal profile information sheet"
+    },
+    "/users/{userId}/study_logs/{docId}": {
+      "schema": "StudyLog",
+      "description": "Individual daily study logs documented"
+    },
+    "/users/{userId}/mock_logs/{docId}": {
+      "schema": "MockLog",
+      "description": "Marksheets from standard test logs"
+    },
+    "/users/{userId}/settings/{docId}": {
+      "schema": "UserSettings",
+      "description": "App and timeline progress tracker settings"
+    }
+  }
+}

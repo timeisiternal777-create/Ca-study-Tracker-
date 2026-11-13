@@ -1,0 +1,9 @@
+.an-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 20px; }
+.an-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 20px; }
+.an-12 { grid-column: span 12; min-width: 0; } .an-7 { grid-column: span 7; min-width: 0; } .an-5 { grid-column: span 5; min-width: 0; }
+.an-subj { display: flex; align-items: center; gap: 28px; }
+.an-insights { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 10px; }
+.an-insights li { position: relative; padding-left: 22px; font-size: 14.5px; line-height: 1.5; color: var(--tx-1); }
+.an-insights li::before { content: ''; position: absolute; left: 4px; top: 0.6em; width: 7px; height: 7px; border-radius: 50%; background: var(--a); box-shadow: 0 0 10px rgb(var(--a-rgb) / 0.7); }
+@media (max-width: 1200px) { .an-7, .an-5 { grid-column: span 12; } .an-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 760px) { .an-subj { flex-direction: column; align-items: stretch; } .an-subj .ch-donut { align-self: center; } .ch-card { padding: 16px; } .an-grid { gap: 14px; } }

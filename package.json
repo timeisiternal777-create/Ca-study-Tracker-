@@ -1,0 +1,33 @@
+{
+  "name": "ca-study-tracker",
+  "version": "7.0.0",
+  "private": true,
+  "description": "CA exam study tracker — daily log, streaks, mocks, targets and rewards. Local-first PWA.",
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
+    "start": "node scripts/serve.mjs",
+    "preview": "node scripts/build.mjs && node scripts/serve.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/test.mjs",
+    "e2e:ios": "node scripts/e2e-ios.mjs",
+    "snap": "node scripts/snap.mjs",
+    "fps": "node scripts/fps.mjs",
+    "icons": "node scripts/make-icons.mjs",
+    "pdf-sample": "node scripts/pdf-sample.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-icons": "^5.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "esbuild": "^0.28.2",
+    "playwright": "^1.63.0",
+    "typescript": "^6.0.3"
+  }
+}

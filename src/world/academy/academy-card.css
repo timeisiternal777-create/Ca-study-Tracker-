@@ -1,0 +1,35 @@
+/* ═════════════════════ The Atrium card: the castle, the post lantern, the Headmistress's line and your house ═════════════════════
+   The castle is the same layered scene Charter Night uses, shown as a still picture (no flags, no drifting mist). Only the post lantern moves, and it is
+   a small SVG, so nothing large is repainted. */
+.dash > .axcard { grid-column: 1 / -1; position: relative; overflow: hidden; background: #060516; }
+.ax-scene { position: relative; aspect-ratio: 1200 / 262; min-height: 232px; overflow: hidden; contain: layout paint; }
+.ax-scene .sc { position: absolute; left: 0; top: var(--ax-y, -38%); width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.ax-scene .sc .sc-l { height: 100%; }
+.ax-scene .sc-mist { animation: none; opacity: 0.4; }
+.ax-scene::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(transparent 62%, rgb(5 4 16 / 0.7)); }
+.ax-post { position: absolute; right: 6.5%; top: 6%; z-index: 1; filter: drop-shadow(0 6px 14px rgb(0 0 0 / 0.45)); }
+
+.ax-copy { position: absolute; left: 0; top: 0; bottom: 0; width: 56%; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 9px; padding: 18px 28px; background: linear-gradient(90deg, rgb(7 5 24 / 0.96) 0%, rgb(7 5 24 / 0.88) 66%, transparent 100%); }
+.ax-kicker { font-size: 13px; color: var(--tx-2); }
+.ax-title { font-family: var(--font-head); font-weight: 700; font-size: clamp(20px, 2vw, 28px); line-height: 1.15; letter-spacing: -0.005em; color: var(--tx-0); text-wrap: balance; }
+.ax-say { display: flex; align-items: flex-start; gap: 10px; max-width: 560px; }
+.ax-say > svg { flex: none; width: 58px; height: auto; margin-top: -2px; }
+.ax-say p { margin: 0; font-family: var(--font-quote); font-style: italic; font-size: 14.5px; line-height: 1.45; color: var(--tx-1); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.ax-act { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-top: 2px; }
+.ax-house { display: inline-flex; align-items: center; gap: 9px; min-width: 0; }
+.ax-house > svg { flex: none; }
+.ax-house b { display: block; font-size: 13.5px; color: var(--tx-0); line-height: 1.2; }
+.ax-house small { display: block; font-size: 12px; color: var(--tx-2); line-height: 1.3; }
+
+@media (max-width: 860px) {
+  .ax-scene { aspect-ratio: auto; height: 200px; min-height: 0; }
+  .ax-scene .sc { top: -34%; }
+  .ax-copy { position: static; width: auto; background: none; padding: 16px 20px 20px; }
+}
+@media (max-width: 520px) {
+  .ax-scene { height: 190px; }
+  .ax-scene .sc { width: 250%; left: -112%; top: -44%; }
+  .ax-post { right: 4%; top: 5%; }
+  .ax-post svg { width: 68px; height: auto; }
+}
+html[data-motion='still'] .axcard * { animation: none !important; }

@@ -1,0 +1,300 @@
+/* ═════════════════════════ The iOS-style interface ═════════════════════════
+   Everything here sits under html[data-ui='ios'] (Settings → Look and feel → Interface). Switch to Classic and none of it applies.
+
+   What it changes, in the order of the file:
+     1  tokens      springs, curves, shapes, glass material, type stack
+     2  pressing    every control dips under your finger and springs back
+     3  type        large titles, tighter tracking
+     4  surfaces    cards, fields, buttons, switches, sliders, segmented controls
+     5  navigation  floating glass sidebar, bar that turns to glass as you scroll, floating tab bar
+   Sheets, alerts, toasts and the timer capsule live in ios-overlays.css.
+
+   The rules the rest of the app follows still hold: only transform and opacity animate, glass is used on a few big surfaces
+   (never on every card), and it steps aside when the device asks for reduced transparency or the motion level is "still". */
+
+/* ───────── 1. Tokens ───────── */
+html[data-ui='ios'] {
+  /* Curves. The long glide is what iOS uses for pushes and sheets. */
+  --ios-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --ios-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+  /* Springs, generated from src/lib/spring.ts (node tools/ios/springs.mjs prints these). Each has a matching duration. */
+  /* smooth: response 0.44s, damping 1, overshoot 0.0 % */
+  --ios-spring-smooth: linear(0, 0.0174, 0.0612, 0.1212, 0.1901, 0.2629, 0.3358, 0.4064, 0.4731, 0.5352, 0.592, 0.6434, 0.6896, 0.7307, 0.7671, 0.7992, 0.8272, 0.8517, 0.873, 0.8914, 0.9073, 0.921, 0.9328, 0.9429, 0.9516, 0.9589, 0.9652, 0.9706, 0.9752, 0.979, 0.9823, 0.9851, 0.9874, 0.9894, 0.9911, 0.9925, 0.9937, 0.9947, 0.9956, 0.9963, 0.9969, 0.9974, 0.9978, 1);
+  --ios-spring-smooth-d: 600ms;
+  /* snappy: response 0.34s, damping 0.82, overshoot 1.1 % */
+  --ios-spring-snappy: linear(0, 0.0161, 0.0581, 0.1178, 0.1886, 0.2653, 0.3442, 0.4221, 0.497, 0.5673, 0.6321, 0.6909, 0.7435, 0.79, 0.8305, 0.8654, 0.8951, 0.9201, 0.9409, 0.958, 0.9718, 0.9827, 0.9913, 0.9979, 1.0028, 1.0063, 1.0086, 1.0101, 1.0109, 1.0111, 1.0109, 1.0105, 1.0098, 1.009, 1.0082, 1.0073, 1.0064, 1.0056, 1.0048, 1.0041, 1.0034, 1.0029, 1.0023, 1);
+  --ios-spring-snappy-d: 440ms;
+  /* bouncy: response 0.46s, damping 0.62, overshoot 8.4 % */
+  --ios-spring-bouncy: linear(0, 0.0244, 0.0881, 0.1782, 0.2841, 0.3968, 0.5095, 0.6168, 0.7151, 0.8021, 0.8765, 0.9381, 0.9872, 1.0246, 1.0516, 1.0694, 1.0795, 1.0834, 1.0824, 1.0779, 1.0708, 1.0622, 1.0529, 1.0435, 1.0343, 1.0259, 1.0184, 1.0119, 1.0064, 1.0021, 0.9987, 0.9962, 0.9945, 0.9935, 0.9931, 0.9931, 0.9934, 0.9939, 0.9946, 0.9954, 0.9962, 0.9969, 0.9977, 1);
+  --ios-spring-bouncy-d: 730ms;
+  /* press: response 0.3s, damping 0.7, overshoot 4.6 % */
+  --ios-spring-press: linear(0, 0.0208, 0.0748, 0.1515, 0.2418, 0.3386, 0.4365, 0.5313, 0.6201, 0.7009, 0.7725, 0.8346, 0.8871, 0.9305, 0.9654, 0.9926, 1.013, 1.0276, 1.0374, 1.0431, 1.0457, 1.0458, 1.044, 1.041, 1.0371, 1.0328, 1.0283, 1.0238, 1.0196, 1.0157, 1.0121, 1.0091, 1.0064, 1.0042, 1.0024, 1.001, 0.9999, 0.9991, 0.9985, 0.9981, 0.9979, 0.9979, 0.9979, 1);
+  --ios-spring-press-d: 440ms;
+
+  /* The old tokens now point at the new curves, so every older animation in the app glides the iOS way too. */
+  --ease: var(--ios-ease);
+  --ease-spring: var(--ios-spring-snappy);
+  --spring-snap: var(--ios-spring-snappy);
+  --spring-soft: var(--ios-spring-smooth);
+  --spring-bounce: var(--ios-spring-bouncy);
+
+  /* Shapes: continuous (squircle) corners where the browser can draw them, larger radii than before. */
+  --r-xs: 9px; --r-sm: 13px; --r-md: 18px; --r-lg: 26px; --r-xl: 34px;
+
+  /* Hairlines are neutral and thin; iOS separates with fill, not with coloured outlines. */
+  --line: rgb(255 255 255 / 0.075); --line-2: rgb(255 255 255 / 0.12); --line-3: rgb(255 255 255 / 0.22);
+  --shadow-card: inset 0 0.5px 0 rgb(255 255 255 / 0.09), 0 14px 32px -24px rgb(0 0 0 / 0.75);
+  --shadow-pop: 0 32px 90px -24px rgb(0 0 0 / 0.85), 0 0 0 0.5px rgb(255 255 255 / 0.14);
+
+  /* Glass: a tinted translucent sheet that blurs what scrolls behind it. */
+  --glass-rgb: 13 19 42;
+  --glass-bg: rgb(var(--glass-rgb) / 0.56);
+  --glass-bg-solid: rgb(var(--glass-rgb) / 0.86);
+  --panel-bg: rgb(var(--glass-rgb) / 0.8);
+  --glass-filter: blur(28px) saturate(1.75);
+  --glass-rim: inset 0 0.5px 0 rgb(255 255 255 / 0.28), inset 0 -0.5px 0 rgb(255 255 255 / 0.05), 0 0 0 0.5px rgb(255 255 255 / 0.1);
+  --scrim-rgb: 0 0 0;
+
+  /* Switches are green on iOS. */
+  --ios-switch: #30d158;
+  --fill-1: rgb(255 255 255 / 0.1);
+  --fill-2: rgb(255 255 255 / 0.07);
+
+  /* Type: the system font on Apple devices, Inter (bundled, works offline) everywhere else. */
+  --font-ui: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-num: -apple-system, 'SF Pro Display', 'Inter Display', 'Inter', system-ui, sans-serif;
+  --font-head: -apple-system, 'SF Pro Display', 'Inter Display', 'Inter', system-ui, sans-serif;
+
+  --sidebar-w: 268px;
+  --topbar-h: 60px;
+  --bottom-nav-h: 88px;
+
+  /* How a control moves when you press it and when you let go. */
+  --tr-rest: transform var(--ios-spring-press-d) var(--ios-spring-press), background-color 180ms, border-color 180ms, box-shadow 260ms, opacity 180ms, color 180ms, filter 180ms;
+  --tr-down: transform 80ms cubic-bezier(0.2, 0.7, 0.3, 1), background-color 80ms, border-color 80ms, box-shadow 120ms, opacity 80ms, color 80ms, filter 80ms;
+}
+html[data-ui='ios'][data-world='voyage'] { --glass-rgb: 4 22 30; --scrim-rgb: 2 10 14; --ios-switch: var(--a); }
+html[data-ui='ios'][data-world='academy'] { --glass-rgb: 10 8 32; --scrim-rgb: 4 3 14; --ios-switch: var(--a); }
+
+/* Less transparency when asked, and none when the motion level is "still". */
+@media (prefers-reduced-transparency: reduce) {
+  html[data-ui='ios'] { --glass-bg: rgb(var(--glass-rgb) / 0.95); --glass-bg-solid: rgb(var(--glass-rgb) / 0.98); --glass-filter: none; }
+}
+html[data-ui='ios'][data-motion='still'] { --glass-bg: rgb(var(--glass-rgb) / 0.92); --glass-bg-solid: rgb(var(--glass-rgb) / 0.97); --glass-filter: none; }
+
+html[data-ui='ios'] body { font-feature-settings: 'calt', 'kern'; letter-spacing: -0.009em; }
+/* No ripple, no looping sheen on buttons: iOS answers a touch with the control itself moving. */
+html[data-ui='ios'] .fx-ink { display: none; }
+html[data-ui='ios'] .btn--primary::after { display: none; }
+
+/* ───────── 2. Pressing ───────── */
+html[data-ui='ios'] :is(.btn, .chip, .icon-btn, .nav-item, .bn-item, .more-item, .stepper-btn, .sect-tab, .profile-chip, .xp-pill, .seg > button, .wp-card, .st-theme, .help-btn, .press, .card--interactive, .tpill button) {
+  transition: var(--tr-rest);
+}
+html[data-ui='ios'] :is(.btn, .chip, .icon-btn, .nav-item, .bn-item, .more-item, .stepper-btn, .sect-tab, .profile-chip, .xp-pill, .seg > button, .wp-card, .st-theme, .help-btn, .press, .card--interactive, .tpill button):active {
+  transform: scale(var(--press, 0.965)); transition: var(--tr-down);
+}
+html[data-ui='ios'] :is(.icon-btn, .stepper-btn, .help-btn, .tpill button) { --press: 0.9; }
+html[data-ui='ios'] :is(.nav-item, .sect-tab, .bn-item, .xp-pill, .profile-chip) { --press: 0.96; }
+html[data-ui='ios'] :is(.card--interactive, .wp-card) { --press: 0.982; }
+html[data-ui='ios'] .more-item { --press: 0.95; }
+html[data-ui='ios'] .btn--ghost:active { opacity: 0.55; }
+@media (hover: hover) { html[data-ui='ios'] .card--interactive:hover { transform: none; } }
+/* The bottom bar and cards must not scale their children through the older rules. */
+html[data-ui='ios'] .bn-item:active svg { transform: none; }
+
+/* ───────── 3. Type ───────── */
+html[data-ui='ios'] .page-head { margin-bottom: 20px; }
+html[data-ui='ios'] .page-head h1 { font-size: 34px; font-weight: 700; letter-spacing: -0.024em; line-height: 1.08; }
+html[data-ui='ios'] .page-head p { margin-top: 6px; font-size: 15px; color: var(--tx-2); }
+html[data-ui='ios']:is([data-world='voyage'], [data-world='academy']) .page-head h1 { letter-spacing: 0.005em; }
+html[data-ui='ios'] :is(.t-h1, .t-h2, .section-title, .modal-title, .brand-name) { letter-spacing: -0.02em; }
+html[data-ui='ios']:is([data-world='voyage'], [data-world='academy']) :is(.t-h1, .t-h2, .section-title, .modal-title, .brand-name) { letter-spacing: 0.005em; }
+html[data-ui='ios'] .card-title { font-size: 16.5px; font-weight: 600; letter-spacing: -0.014em; }
+html[data-ui='ios'] .card-sub { font-size: 13.5px; }
+html[data-ui='ios'] .section-title { font-size: 21px; }
+@media (max-width: 640px) { html[data-ui='ios'] .page-head h1 { font-size: 30px; } }
+
+/* ───────── 4. Surfaces and controls ───────── */
+
+/* Continuous corners where the browser supports them (Chrome 139+); everything else keeps the plain rounded corner.
+   Not on cards or art: they hold things that move (progress stripes, flames, shimmer), and a squircle clip makes the browser draw them
+   through a mask on every frame. Measured: about 5 frames a second on the Overview in a software-rendered browser, for a corner you
+   cannot tell from a round one at card size. Sheets, alerts, toasts, fields and small controls have it. */
+html[data-ui='ios'] :is(.modal, .toast, .input, .select, .textarea, .callout, .banner, .more-item, .stat-icon, .empty-icon, .profile-chip, .nav-item, .nav-glide, .stepper-btn, .icon-btn, .avatar, .brand-mark, .abbr) { corner-shape: squircle; }
+
+/* Cards: a quiet fill and a lit top edge, no outline. */
+html[data-ui='ios'] .card { border-radius: var(--r-lg); border-color: var(--line); box-shadow: var(--shadow-card); }
+html[data-ui='ios'] .card--flush { overflow: hidden; }
+html[data-ui='ios'] .callout, html[data-ui='ios'] .banner { border-radius: var(--r-md); }
+html[data-ui='ios'] .empty-icon { border-radius: 24px; }
+html[data-ui='ios'] .stat-icon { border-radius: 12px; }
+
+/* Buttons are capsules. */
+html[data-ui='ios'] .btn { border-radius: 999px; corner-shape: round; border-color: transparent; background: var(--fill-1); font-weight: 600; letter-spacing: -0.012em; }
+@media (hover: hover) { html[data-ui='ios'] .btn:hover { background: rgb(255 255 255 / 0.15); border-color: transparent; } }
+html[data-ui='ios'] .btn--soft { background: rgb(var(--ac-rgb, var(--a-rgb)) / 0.16); border-color: transparent; }
+@media (hover: hover) { html[data-ui='ios'] .btn--soft:hover { background: rgb(var(--ac-rgb, var(--a-rgb)) / 0.24); border-color: transparent; } }
+html[data-ui='ios'] .btn--ghost { background: transparent; color: var(--a); }
+@media (hover: hover) { html[data-ui='ios'] .btn--ghost:hover { background: var(--fill-2); color: var(--a); } }
+html[data-ui='ios'] .btn--danger { background: rgb(var(--c-rose-rgb) / 0.15); border-color: transparent; }
+html[data-ui='ios'] .btn--icon { border-radius: 50%; }
+html[data-ui='ios'][data-world='default'] .btn--primary { background: var(--a); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.38), 0 8px 22px -10px rgb(var(--a-rgb) / 0.7); }
+@media (hover: hover) { html[data-ui='ios'][data-world='default'] .btn--primary:hover { background: var(--a); filter: brightness(1.06); } }
+/* The worlds' own gold buttons. These sit here (not only in skin.css) because the capsule rule above is more specific than a world's plain selector. */
+html[data-ui='ios'][data-world='voyage'] .btn--primary { background: linear-gradient(135deg, #f8d27c, #e2a63c); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 22px -10px rgb(242 194 92 / 0.7); }
+html[data-ui='ios'][data-world='academy'] .btn--primary { background: linear-gradient(135deg, #ffcb7c, #ee8f3a); box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.45), 0 8px 22px -10px rgb(246 150 60 / 0.7); }
+@media (hover: hover) {
+  html[data-ui='ios'][data-world='voyage'] .btn--primary:hover { background: linear-gradient(135deg, #f8d27c, #e2a63c); filter: brightness(1.06); }
+  html[data-ui='ios'][data-world='academy'] .btn--primary:hover { background: linear-gradient(135deg, #ffcb7c, #ee8f3a); filter: brightness(1.06); }
+}
+html[data-ui='ios'] .btn--lg { --h: 54px; font-size: 16px; }
+
+/* Fields: a filled well, no outline until focused. */
+html[data-ui='ios'] :is(.input, .select, .textarea) { border-radius: 14px; border-color: transparent; background-color: rgb(255 255 255 / 0.075); }
+html[data-ui='ios'] .input--sm { border-radius: 12px; }
+@media (hover: hover) { html[data-ui='ios'] :is(.input, .select, .textarea):hover { border-color: transparent; background-color: rgb(255 255 255 / 0.1); } }
+html[data-ui='ios'] :is(.input, .select, .textarea):focus-visible { border-color: rgb(var(--a-rgb) / 0.75); background-color: rgb(255 255 255 / 0.09); box-shadow: 0 0 0 4px rgb(var(--a-rgb) / 0.2); }
+html[data-ui='ios'] :is(.input, .textarea) { caret-color: var(--a); }
+html[data-ui='ios'] .field-label { font-weight: 600; }
+html[data-ui='ios'] :is(.input, .select, .textarea) { transition: border-color 160ms, box-shadow 220ms var(--ios-ease), background-color 160ms; }
+
+/* Slider */
+html[data-ui='ios'] .range::-webkit-slider-runnable-track { height: 5px; background: linear-gradient(90deg, var(--ac-fill) var(--p), rgb(255 255 255 / 0.16) var(--p)); }
+html[data-ui='ios'] .range::-webkit-slider-thumb { width: 28px; height: 28px; margin-top: -11.5px; border: 0; background: #fff; box-shadow: 0 0.5px 4px rgb(0 0 0 / 0.12), 0 6px 13px rgb(0 0 0 / 0.3); transition: transform var(--ios-spring-press-d) var(--ios-spring-press); }
+html[data-ui='ios'] .range:active::-webkit-slider-thumb { transform: scale(1.12); }
+html[data-ui='ios'] .range::-moz-range-thumb { width: 28px; height: 28px; border: 0; background: #fff; }
+
+/* Switch: 51 x 31, a white thumb that stretches while pressed and can be dragged (see Switch in ui/Controls.tsx).
+   --f is how far along the thumb is (0 off, 1 on); the drag code sets it while a finger is down. The pressed thumb is wider, so it travels less. */
+html[data-ui='ios'] .switch { --tw: 27px; --f: 0; width: 51px; height: 31px; border: 0; background: rgb(120 120 128 / 0.34); touch-action: pan-y; transition: background-color 260ms var(--ios-ease); }
+html[data-ui='ios'] .switch[aria-checked='true'] { --f: 1; background: var(--ios-switch); }
+html[data-ui='ios'] .switch:active, html[data-ui='ios'] .switch[data-drag] { --tw: 33px; }
+html[data-ui='ios'] .switch::after {
+  top: 2px; left: 2px; width: var(--tw); height: 27px; background: #fff;
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.15), 0 1px 1px rgb(0 0 0 / 0.16), 0 3px 1px rgb(0 0 0 / 0.06);
+  transform: translateX(calc((47px - var(--tw)) * var(--f)));
+  transition: transform var(--ios-spring-snappy-d) var(--ios-spring-snappy), width 240ms var(--ios-spring-snappy);
+}
+html[data-ui='ios'] .switch[data-drag]::after { transition: none; }
+html[data-ui='ios'] .switch[data-drag] { transition: background-color 200ms; }
+/* While dragging, the track takes the colour of the side the thumb is nearer to. */
+html[data-ui='ios'] .switch[data-drag][data-pv='on'] { background: var(--ios-switch); }
+html[data-ui='ios'] .switch[data-drag][data-pv='off'] { background: rgb(120 120 128 / 0.34); }
+
+/* Segmented control: a capsule with a glass thumb that slides on a spring. */
+html[data-ui='ios'] .seg { padding: 3px; border: 0; border-radius: 999px; corner-shape: round; background: rgb(255 255 255 / 0.08); }
+html[data-ui='ios'] .seg::before {
+  top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n, 2)); border-radius: 999px;
+  background: rgb(255 255 255 / 0.17); box-shadow: 0 2px 10px rgb(0 0 0 / 0.28), inset 0 0.5px 0 rgb(255 255 255 / 0.28);
+  transition: transform var(--ios-spring-snappy-d) var(--ios-spring-snappy);
+}
+html[data-ui='ios'] .seg > button { height: 34px; border-radius: 999px; letter-spacing: -0.01em; }
+
+html[data-ui='ios'] .chip { border-color: transparent; background: var(--fill-2); }
+html[data-ui='ios'] .chip[aria-pressed='true'], html[data-ui='ios'] .chip[aria-selected='true'] { border-color: rgb(var(--ac-rgb, var(--a-rgb)) / 0.5); }
+html[data-ui='ios'] .tag { border-color: transparent; }
+html[data-ui='ios'] .stepper-btn { border-radius: 50%; border-color: transparent; background: var(--fill-1); }
+html[data-ui='ios'] .stepper-val { font-weight: 700; }
+html[data-ui='ios'] .bar { background: rgb(255 255 255 / 0.1); }
+html[data-ui='ios'] .kbd { border-radius: 8px; }
+
+/* ───────── 5. Navigation ───────── */
+
+/* The top bar is clear at rest and turns to blurred glass once content scrolls under it. */
+html[data-ui='ios'] .topbar { background: transparent; border-bottom: 0; height: var(--topbar-h); }
+.topbar-glass { display: none; }
+html[data-ui='ios'] .topbar-glass {
+  display: block; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+  box-shadow: 0 0.5px 0 rgb(255 255 255 / 0.14);
+}
+.topbar-center { display: none; }
+html[data-ui='ios'] .topbar-center {
+  display: flex; align-items: center; position: absolute; left: 50%; top: 0; bottom: 0; max-width: 38%; transform: translateX(-50%);
+  font-family: var(--font-ui); font-size: 17px; font-weight: 600; letter-spacing: -0.02em; pointer-events: none;
+}
+html[data-ui='ios'] .topbar-center > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@supports (animation-timeline: scroll()) {
+  /* A page too short to scroll has no scroll timeline, and an animation without one does nothing: the plain style shows.
+     So the plain style is the resting one (clear bar, no small title), and scrolling is what brings the glass in.
+     Reduced motion sets every animation to 0.001ms; that must not stop this one, which is the scroll position, not a movement. */
+  html[data-ui='ios'] .topbar-glass { opacity: 0; animation: ios-bar-in linear both; animation-duration: auto !important; animation-timeline: scroll(root block); animation-range: 0 30px; }
+  html[data-ui='ios'] .topbar-center { opacity: 0; animation: ios-title-in linear both; animation-duration: auto !important; animation-timeline: scroll(root block); animation-range: 26px 70px; }
+  /* Set by the shell while the page is too short to scroll: drop the animation (and with it anything it kept from before). */
+  html[data-ui='ios'] .topbar[data-fit] :is(.topbar-glass, .topbar-center) { animation: none; opacity: 0; }
+  @keyframes ios-bar-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes ios-title-in { from { opacity: 0; transform: translate(-50%, 9px); } to { opacity: 1; transform: translate(-50%, 0); } }
+}
+/* Once the bar is glass (the shell sets data-scrolled), anything that keeps moving inside it holds still: the glass is a live blur of
+   what is behind it, and a loop inside the bar makes the browser redo that blur on every frame (measured: 50 fps instead of 60 in the
+   software-rendered test browser). The sparkle simply stops where it is until the page is back at the top. */
+html[data-ui='ios'] .topbar[data-scrolled] .xp-ic svg { animation-play-state: paused; }
+html[data-ui='ios'] .icon-btn { border: 0; border-radius: 50%; background: var(--fill-1); width: 40px; height: 40px; }
+html[data-ui='ios'] .xp-pill { border: 0; background: var(--fill-1); height: 38px; }
+html[data-ui='ios'] .xp-pill::before { display: none; }
+@media (hover: hover) { html[data-ui='ios'] :is(.icon-btn, .xp-pill):hover { background: rgb(255 255 255 / 0.15); } }
+html[data-ui='ios'] .icon-btn[data-attn='true']::after { box-shadow: none; }
+
+/* Sidebar (wide screens): a floating glass panel with a soft selection capsule. */
+@media (min-width: 1101px) {
+  html[data-ui='ios'] .sidebar {
+    top: 12px; height: calc(100dvh - 24px); margin: 12px 0 12px 12px; padding: 18px 12px 12px;
+    border: 0; border-radius: 34px; corner-shape: squircle;
+    /* No blur here: nothing scrolls under the sidebar, only the quiet backdrop, and a blur behind a moving backdrop is redrawn every frame. */
+    background: var(--panel-bg);
+    box-shadow: var(--glass-rim), 0 26px 60px -30px rgb(0 0 0 / 0.85);
+  }
+}
+html[data-ui='ios'] .brand { padding: 4px 8px 12px; }
+html[data-ui='ios'] .brand-sub { font-size: 12.5px; }
+html[data-ui='ios'] .nav-item { height: 44px; border-radius: 15px; font-size: 15px; letter-spacing: -0.014em; }
+html[data-ui='ios'] .nav-item[aria-current='page'] { font-weight: 600; }
+html[data-ui='ios'] .nav-item svg { width: 21px; height: 21px; }
+html[data-ui='ios'] .nav-glide { border-radius: 15px; background: rgb(var(--a-rgb) / 0.17); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.2); }
+html[data-ui='ios'] .nav-glide::before, html[data-ui='ios'] .nav-glide::after, html[data-ui='ios'] .sidebar-foot .nav-item[aria-current='page']::before { display: none; }
+html[data-ui='ios'] .sidebar-foot .nav-item[aria-current='page'] { background: rgb(var(--a-rgb) / 0.17); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.2); }
+html[data-ui='ios'] .nav-glide.is-ready { transition: transform var(--ios-spring-snappy-d) var(--ios-spring-snappy); }
+html[data-ui='ios'] .profile-chip { border: 0; border-radius: 20px; background: var(--fill-2); }
+html[data-ui='ios'] .avatar { border-radius: 50%; }
+html[data-ui='ios'] .nav-badge { background: #ff453a; color: #fff; }
+
+/* Related screens under one menu item read as a segmented control. */
+html[data-ui='ios'] .sect-tabs { padding: 3px; border: 0; border-radius: 999px; background: rgb(255 255 255 / 0.08); }
+html[data-ui='ios'] .sect-glide { border-radius: 999px; background: rgb(255 255 255 / 0.17); box-shadow: 0 2px 10px rgb(0 0 0 / 0.28), inset 0 0.5px 0 rgb(255 255 255 / 0.28); }
+html[data-ui='ios'] .sect-glide.is-ready { transition: transform var(--ios-spring-snappy-d) var(--ios-spring-snappy), width var(--ios-spring-snappy-d) var(--ios-spring-snappy); }
+html[data-ui='ios'] .sect-tab { height: 36px; border-radius: 999px; letter-spacing: -0.01em; }
+html[data-ui='ios'] .sect-tab svg { display: none; }
+
+/* Tab bar (phones and tablets held upright): a floating glass capsule. */
+@media (max-width: 1100px) {
+  html[data-ui='ios'] .topbar { padding-left: 16px; padding-right: 16px; }
+  html[data-ui='ios'] .bottom-nav {
+    left: 14px; right: 14px; bottom: calc(10px + var(--safe-b)); height: 66px; max-width: 620px; margin-inline: auto; padding: 5px;
+    border: 0; border-radius: 33px; corner-shape: round;
+    background: var(--glass-bg); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+    box-shadow: var(--glass-rim), 0 22px 44px -18px rgb(0 0 0 / 0.85);
+  }
+  html[data-ui='ios'] .bn-item { gap: 2px; border-radius: 28px; font-size: 10.5px; letter-spacing: 0; }
+  html[data-ui='ios'] .bn-item svg { width: 25px; height: 25px; }
+  html[data-ui='ios'] .bn-item[aria-current='page'] svg { transform: none; }
+  html[data-ui='ios'] .bn-item[aria-current='page'] { color: var(--a); }
+  html[data-ui='ios'] .bn-glide { top: 5px; bottom: 5px; height: auto; }
+  html[data-ui='ios'] .bn-glide::after {
+    inset: 0; left: 0; right: 0; width: auto; height: auto; margin: 0; border-radius: 28px; animation: none; opacity: 1;
+    background: rgb(255 255 255 / 0.13); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.24), 0 4px 14px -6px rgb(0 0 0 / 0.5);
+  }
+  html[data-ui='ios'] .bn-glide.is-ready { transition: transform var(--ios-spring-snappy-d) var(--ios-spring-snappy); }
+  html[data-ui='ios'] .bn-badge { background: #ff453a; color: #fff; top: 6px; }
+}
+@media (max-width: 640px) {
+  html[data-ui='ios'] .topbar-brand .topbar-title { display: none; }
+  html[data-ui='ios'] .topbar-center { display: none; }
+}
+
+/* A page arrives with the long iOS glide. */
+html[data-ui='ios'][data-dir='f'] .page-enter { animation: page-in-f 460ms var(--ios-ease) backwards; }
+html[data-ui='ios'][data-dir='b'] .page-enter { animation: page-in-b 460ms var(--ios-ease) backwards; }
+html[data-ui='ios'] .more-grid { gap: 12px; }
+html[data-ui='ios'] .more-item { border: 0; border-radius: 22px; background: var(--fill-2); }
+html[data-ui='ios'] .more-item[aria-current='page'] { background: rgb(var(--a-rgb) / 0.17); }
