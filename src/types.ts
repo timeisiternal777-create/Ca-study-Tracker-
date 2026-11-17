@@ -81,6 +81,10 @@ export interface UserSettings {
   worldTheme?: 'default' | 'voyage' | 'academy';
   /** The interface: 'ios' (springs, glass bars, sheets you drag away) or 'classic', the look before v6. Default 'ios'. */
   ui?: 'ios' | 'classic';
+  /** How clear or tinted the glass is, 0 (clear) to 100 (tinted). Default 55. */
+  glass?: number;
+  /** The everyday wallpaper: 'day' follows the hour of the day, 'night' stays on the night sky. The worlds keep their own. Default 'day'. */
+  wallpaper?: 'day' | 'night';
   /** In a themed world, keep the everyday words (Overview, Study log...) instead of the themed ones. */
   plainWords?: boolean;
   /** Weekdays that are planned rest days (0 = Sunday … 6 = Saturday). They never break a streak. */

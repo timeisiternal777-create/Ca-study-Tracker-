@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { LuX, LuTriangleAlert } from 'react-icons/lu';
 import { cn } from '../../lib/format';
 import { sfx } from '../../lib/sfx';
-import { useIos } from '../../lib/ui';
+import { holdPage, popFrom, useIos } from '../../lib/ui';
 import { useFocusTrap, useLockScroll } from '../../hooks/useDialog';
 import { useSheetDrag } from '../../hooks/useSheetDrag';
 import { Button } from './Button';
@@ -68,7 +68,18 @@ export function Modal({ open, onClose, title, description, size = 'md', children
     return () => { cancelAnimationFrame(raf); ro.disconnect(); mo.disconnect(); };
   }, [mounted, ios]);
 
+  // A sheet on a wide screen springs out of the control that was pressed to open it: the stylesheet starts it from --from-x / --from-y.
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!mounted || !el || !ios) return;
+    const from = popFrom();
+    if (from) { el.style.setProperty('--from-x', `${from.x}px`); el.style.setProperty('--from-y', `${from.y}px`); }
+    else { el.style.removeProperty('--from-x'); el.style.removeProperty('--from-y'); }
+  }, [mounted, ios]);
+
   useLockScroll(mounted);
+  // The page behind a sheet stands still (lib/ui.ts holdPage): its loops would make the glass redo its blur on every frame.
+  useEffect(() => (mounted && ios ? holdPage() : undefined), [mounted, ios]);
   useFocusTrap(ref, mounted && !closing, dismissible ? onClose : undefined);
   useSheetDrag({ sheet: ref, scrim: scrimRef, active: ios && mounted && !closing, dismissible, onDismiss: () => { flicked.current = true; onClose(); } });
   if (!mounted) return null;
@@ -123,6 +134,7 @@ function IosAlert({ open, title, body, cancelLabel, confirmLabel, danger, onCanc
     wasOpen.current = open;
   }, [open]);
   useLockScroll(mounted);
+  useEffect(() => (mounted ? holdPage() : undefined), [mounted]);
   useFocusTrap(ref, mounted && !closing, onCancel);
   if (!mounted) return null;
   // A long label or a long message cannot share a row; stack the buttons the way iOS does.

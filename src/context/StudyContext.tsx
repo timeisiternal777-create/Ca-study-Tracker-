@@ -10,6 +10,8 @@ import { clamp, uid } from '../lib/format';
 import { sfx } from '../lib/sfx';
 import { SLOTS, getSlot, logHours, normaliseLog } from '../lib/log';
 import { normaliseWorld } from '../world/words';
+import { applyGlass, applyWallpaperMode } from '../lib/look';
+import { normaliseGlass } from '../lib/wallpaper';
 
 export { normaliseLog };
 
@@ -40,6 +42,8 @@ function loadSettings(): UserSettings {
   if (s.motionLevel !== 'auto' && s.motionLevel !== 'full' && s.motionLevel !== 'calm') delete s.motionLevel;
   if (s.worldTheme !== 'default' && s.worldTheme !== 'voyage' && s.worldTheme !== 'academy') delete s.worldTheme;
   if (s.ui !== 'ios' && s.ui !== 'classic') delete s.ui;
+  if (typeof s.glass !== 'number' || !Number.isFinite(s.glass)) delete s.glass; else s.glass = normaliseGlass(s.glass);
+  if (s.wallpaper !== 'day' && s.wallpaper !== 'night') delete s.wallpaper;
   return s;
 }
 
@@ -139,6 +143,8 @@ export function StudyProvider({ children }: { children: ReactNode }) {
   useEffect(() => { document.documentElement.setAttribute('data-accent', settings.accent || 'aurora'); }, [settings.accent]);
   useEffect(() => { document.documentElement.setAttribute('data-world', normaliseWorld(settings.worldTheme)); }, [settings.worldTheme]);
   useEffect(() => { document.documentElement.setAttribute('data-ui', settings.ui === 'classic' ? 'classic' : 'ios'); }, [settings.ui]);
+  useEffect(() => { applyGlass(settings.glass); }, [settings.glass]);
+  useEffect(() => { applyWallpaperMode(settings.wallpaper); }, [settings.wallpaper]);
 
   // Cross-tab sync.
   useEffect(() => {

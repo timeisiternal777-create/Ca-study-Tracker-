@@ -226,23 +226,28 @@ await withApp({ w: 1472, h: 920 }, async ({ page, app, errors }) => {
   check('<html data-world> says academy', (await page.evaluate(() => document.documentElement.dataset.world)) === 'academy');
 
   await go('overview', 1500);
-  // The castle behind the app is painted into the sky canvas, so it costs no layer of its own. Look at the canvas pixels: busy in the lower right, calm elsewhere.
+  // The castle behind the app is painted into the wallpaper canvas, so it costs no layer of its own. Look at the canvas pixels: the castle (low on the menu side) is full of
+  // edges and lit windows, everything else is a smooth gradient with grain. "Detail" is the 95th percentile of the spread of brightness inside 8 x 8 blocks: a smooth gradient
+  // and grain stay low in every block, an edge or a window sends some blocks high.
   const skyStat = () => page.evaluate(() => {
     // copy the sky into a scratch canvas made for reading, so the test does not make the sky's own canvas complain about read-backs
     const c = document.querySelector('.bg canvas.sky'); const W = c.width, H = c.height;
     const scratch = document.createElement('canvas'); scratch.width = W; scratch.height = H;
     const g = scratch.getContext('2d', { willReadFrequently: true }); g.drawImage(c, 0, 0);
-    const rect = (x0, y0, x1, y1) => {
-      const d = g.getImageData(Math.round(W * x0), Math.round(H * y0), Math.round(W * (x1 - x0)), Math.round(H * (y1 - y0))).data;
-      let n = 0, a = 0, b = 0;
-      for (let i = 0; i < d.length; i += 4) { const l = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; n++; a += l; b += l * l; }
-      const m = a / n; return +Math.sqrt(Math.max(0, b / n - m * m)).toFixed(2);
+    const detail = (x0, y0, x1, y1) => {
+      const X0 = Math.round(W * x0), Y0 = Math.round(H * y0), w = Math.round(W * (x1 - x0)), h = Math.round(H * (y1 - y0)); const d = g.getImageData(X0, Y0, w, h).data; const sds = [];
+      for (let by = 0; by + 8 <= h; by += 8) for (let bx = 0; bx + 8 <= w; bx += 8) {
+        let a = 0, b = 0, n = 0;
+        for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { const i = ((by + y) * w + bx + x) * 4; const l = 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2]; a += l; b += l * l; n++; }
+        const m = a / n; sds.push(Math.sqrt(Math.max(0, b / n - m * m)));
+      }
+      sds.sort((p, q) => p - q); return +sds[Math.floor(sds.length * 0.95)].toFixed(2);
     };
-    return { castle: rect(0.72, 0.58, 0.92, 0.82), quiet: rect(0.1, 0.3, 0.3, 0.5) };
+    return { castle: detail(0, 0.5, 0.2, 0.8), quiet: detail(0.55, 0.3, 0.75, 0.5) };
   });
   const sky1 = await skyStat();
-  check('the castle is painted into the sky canvas in the lower right, with no layer of its own', sky1.castle > 6 && sky1.quiet < 3 && (await page.locator('.ab-scene').count()) === 0, JSON.stringify(sky1));
-  check('mist and nine fireflies drift in front of it', (await page.locator('.ab-mist i').count()) === 2 && (await page.locator('.ab-ff i').count()) === 9);
+  check('the castle is painted into the wallpaper canvas, low on the menu side, with no layer of its own', sky1.castle > 7 && sky1.quiet < 4 && (await page.locator('.ab-scene').count()) === 0, JSON.stringify(sky1));
+  check('nothing drifts behind the app: the wallpaper is one canvas, with no mist or fireflies in front of the castle', (await page.locator('.bg').evaluate((el) => el.children.length)) === 1 && (await page.locator('.ab-mist, .ab-ff').count()) === 0);
   const card = await page.evaluate(() => { const c = document.querySelector('.axcard'); return c && { title: c.querySelector('.ax-title')?.textContent || '', parts: c.querySelectorAll('.ax-scene svg *').length, face: !!c.querySelector('.ax-say svg') }; });
   check('the Atrium shows the school card: the castle drawn in detail, the Headmistress and a headline', !!card && card.parts > 150 && card.face && /school is behind you|Charter is yours/.test(card.title), JSON.stringify(card));
   check('with no house yet, the card offers the Choosing', (await page.getByRole('button', { name: /Be chosen for a house/ }).count()) > 0);
@@ -353,8 +358,146 @@ await withApp({ w: 1472, h: 920 }, async ({ page, app, errors }) => {
   await page.locator('.wp-card--default').scrollIntoViewIfNeeded(); await page.locator('.wp-card--default').click(); await sleep(1500);
   await sleep(600);
   const sky2 = await skyStat();
-  check('and the castle leaves the sky with it', sky2.castle < 4, JSON.stringify({ was: sky1.castle, now: sky2.castle }));
+  check('and the castle leaves the wallpaper with it', sky2.castle < 4, JSON.stringify({ was: sky1.castle, now: sky2.castle }));
   check('one tap on Everyday brings the everyday look back, and the data is untouched', (await page.evaluate(() => document.documentElement.dataset.world)) === 'default' && (await page.evaluate(() => JSON.parse(localStorage.getItem('ca_study_logs_v4_inter') || '[]').length)) > 0);
+
+  // ───────── 6c. v8: the wallpaper, the glass and the motion ─────────
+  console.log('Wallpaper, glass and motion');
+  {
+  await prep();
+  await go('overview', 1500);
+  const hexOfRgb = (c) => { const m = /(\d+)\D+(\d+)\D+(\d+)/.exec(c); return m ? '#' + [1, 2, 3].map((i) => (+m[i]).toString(16).padStart(2, '0')).join('') : ''; };
+  const wp = await page.evaluate(() => {
+    const bg = document.querySelector('.bg'), cv = bg.querySelector('canvas.sky'), cs = getComputedStyle(document.documentElement);
+    return { ready: bg.getAttribute('data-sky') === 'on' && cv.classList.contains('is-ready'), kids: bg.children.length, top: cs.getPropertyValue('--wp-top').trim(), name: cs.getPropertyValue('--wp-name').trim(), theme: document.querySelector('meta[name="theme-color"]').getAttribute('content') };
+  });
+  check('the wallpaper is one painted canvas, and its colours and its name are on <html>', wp.ready && wp.kids === 1 && /^rgb\(/.test(wp.top) && /^"/.test(wp.name), JSON.stringify(wp));
+  check('the browser\'s theme colour is the top of the sky', hexOfRgb(wp.top) === wp.theme, JSON.stringify({ top: wp.top, theme: wp.theme }));
+
+  const sb = await page.evaluate(() => { const el = document.querySelector('.sidebar'), r = el.getBoundingClientRect(), c = getComputedStyle(el); return { l: r.left, t: r.top, h: r.height, vh: innerHeight, radius: c.borderTopLeftRadius, blur: c.backdropFilter, fill: c.backgroundColor }; });
+  check('the sidebar is edge to edge: flush with the left, top and bottom of the screen, square-cornered and not blurred', sb.l === 0 && sb.t === 0 && near(sb.h, sb.vh, 1) && sb.radius === '0px' && (sb.blur === 'none' || sb.blur === ''), JSON.stringify(sb));
+
+  const cards = await page.evaluate(() => {
+    const all = [...document.querySelectorAll('.card')];
+    const icon = document.querySelector('.stat-icon');
+    return { n: all.length, flat: all.every((c) => getComputedStyle(c).backgroundImage === 'none'), tinted: all.every((c) => /^rgba\(/.test(getComputedStyle(c).backgroundColor)), icon: icon ? getComputedStyle(icon).backgroundColor + ' / ' + getComputedStyle(icon).borderTopWidth : null };
+  });
+  check('every card is matte: a flat tinted fill, no gradient wash', cards.n > 4 && cards.flat && cards.tinted, JSON.stringify(cards));
+  check('stat icons are plain symbols, not coloured boxes', cards.icon === null || /^rgba\(0, 0, 0, 0\) \/ 0px$/.test(cards.icon), String(cards.icon));
+  const loops = await page.evaluate(() => ({
+    radar: document.querySelector('.radar') ? getComputedStyle(document.querySelector('.radar')).animationName : 'none',
+    aura: document.querySelector('.cta-aura') ? getComputedStyle(document.querySelector('.cta-aura')).display : 'none',
+  }));
+  check('the floating dial and the halo behind the main button are gone from the Overview', loops.radar === 'none' && loops.aura === 'none', JSON.stringify(loops));
+
+  await go('log', 1300); await page.evaluate(() => scrollTo(0, 400)); await sleep(500);
+  const tb = await page.evaluate(() => { const g = document.querySelector('.topbar-glass'), bar = document.querySelector('.topbar'), cs = getComputedStyle(g); return { op: +cs.opacity, glassH: g.getBoundingClientRect().height, barH: bar.getBoundingClientRect().height, mask: cs.maskImage || cs.webkitMaskImage || '', blur: cs.backdropFilter || '' }; });
+  check('scrolled, the top bar is glass whose lower edge fades into the page: it reaches below the bar, is masked and blurs', tb.op === 1 && tb.glassH > tb.barH + 10 && /gradient/.test(tb.mask) && /blur/.test(tb.blur), JSON.stringify(tb));
+  const pill = await page.evaluate(() => { const el = document.querySelector('.topbar .icon-btn'); const c = getComputedStyle(el); return { blur: c.backdropFilter, fill: c.backgroundColor, rim: /inset/.test(c.boxShadow) }; });
+  check('the buttons in the bar are small tinted pieces of glass with a lit rim', /^rgba\(/.test(pill.fill) && pill.rim, JSON.stringify(pill));
+  // A blur laid over a blur is the most expensive thing glass can ask of the browser, so the bar's own glass is the only blur in the bar.
+  const barBlurs = await page.evaluate(() => [...document.querySelectorAll('.topbar, .topbar *')].filter((e) => { const c = getComputedStyle(e); return c.backdropFilter !== 'none' && c.backdropFilter !== ''; }).map((e) => e.className));
+  check('the bar is one blur, not a blur under each button', barBlurs.length === 1 && /topbar-glass/.test(String(barBlurs[0])), JSON.stringify(barBlurs));
+  await page.evaluate(() => scrollTo(0, 0)); await sleep(300);
+
+  // The light under a finger: it is put on the control that is pressed, follows the finger, and fades when it lifts.
+  const btn = page.locator('.topbar .icon-btn').first(); const bb = await btn.boundingBox();
+  await page.mouse.move(bb.x + 8, bb.y + 8); await page.mouse.down(); await sleep(160);
+  const lit1 = await btn.evaluate((el) => ({ lit: el.hasAttribute('data-lit'), gx: el.style.getPropertyValue('--gx'), gy: el.style.getPropertyValue('--gy'), gl: getComputedStyle(el).getPropertyValue('--gl').trim() }));
+  await page.mouse.move(bb.x + bb.width - 8, bb.y + bb.height - 8, { steps: 4 }); await sleep(60);
+  const lit2 = await btn.evaluate((el) => ({ gx: el.style.getPropertyValue('--gx'), gy: el.style.getPropertyValue('--gy') }));
+  await page.mouse.move(bb.x + bb.width + 120, bb.y + 200); await page.mouse.up(); await sleep(900);
+  const lit3 = await btn.evaluate((el) => ({ lit: el.hasAttribute('data-lit'), gl: getComputedStyle(el).getPropertyValue('--gl').trim() }));
+  check('pressing a control puts the light under the finger (its place is on the control) and brings it up', lit1.lit && lit1.gx === '8px' && lit1.gy === '8px' && +lit1.gl > 0.5, JSON.stringify(lit1));
+  check('the light follows the finger across the control', lit2.gx !== lit1.gx && lit2.gy !== lit1.gy, JSON.stringify({ from: lit1, to: lit2 }));
+  check('letting go lets the light fade away', !lit3.lit && +lit3.gl < 0.05, JSON.stringify(lit3));
+
+  // Moving between screens (here by the menu, the way a person does it): a fade up out of a slightly smaller size, with no sideways slide. A screen is a separate piece
+  // of code the first time it is opened, so the arrival starts when that has loaded.
+  const arrival = async () => {
+    await page.waitForFunction(() => document.getAnimations().some((x) => x.animationName === 'ios-page-in'), null, { timeout: 4000 }).catch(() => {});
+    return page.evaluate(() => {
+      const a = document.getAnimations().find((x) => x.animationName === 'ios-page-in');
+      const kf = a ? a.effect.getKeyframes()[0] : null;
+      return { name: a ? a.animationName : null, from: kf ? String(kf.transform) : null, opacity: kf ? kf.opacity : null };
+    });
+  };
+  await go('overview', 1200);
+  await page.locator('.sidebar .nav-item', { hasText: 'Insights' }).first().click();
+  const pg = await arrival();
+  check('a new screen fades up out of a slightly smaller size: no sideways slide', pg.name === 'ios-page-in' && /^translate3d\(0px, /.test(pg.from || '') && /scale\(0\.98/.test(pg.from || '') && +pg.opacity === 0, JSON.stringify(pg));
+  await sleep(900);
+  // Also when the address changes under the app (a link, the back button): the same arrival.
+  await page.evaluate(() => { location.hash = '#/log'; });
+  const pg2 = await arrival();
+  check('and the same when the address changes without the menu', pg2.name === 'ios-page-in', JSON.stringify(pg2));
+  await sleep(900);
+
+  // The cards of a screen arrive close together: 22 ms apart.
+  await go('mock-analysis', 1100);
+  const st = await page.evaluate(() => { const el = [...document.querySelectorAll('.stagger')].find((e) => e.children.length >= 3); if (!el) return null; return [0, 1, 2].map((n) => getComputedStyle(el.children[n]).animationDelay); });
+  check('the cards of a screen arrive 22 ms apart', !!st && st[0] === '0s' && st[1] === '0.022s' && st[2] === '0.044s', JSON.stringify(st));
+
+  // A sheet on a wide screen springs up out of the control that was pressed.
+  await go('overview', 1200);
+  const add = page.getByRole('button', { name: /Add hours/ }).first(); const ab = await add.boundingBox();
+  await add.click(); await sleep(60);
+  const pop = await page.evaluate(() => { const m = document.querySelector('.modal'); if (!m) return null; const cs = getComputedStyle(m); return { anim: cs.animationName.split(',')[0].trim(), blur: cs.backdropFilter, fx: m.style.getPropertyValue('--from-x'), fy: m.style.getPropertyValue('--from-y') }; });
+  // Loops that repeat for ever and are not part of an overlay: the mascot breathing, the radar, the flame...
+  const loopsBehind = () => page.evaluate(() => document.getAnimations().filter((a) => { const fx = a.effect; const t = fx && fx.target; return a.playState === 'running' && fx && fx.getTiming().iterations === Infinity && !(t && t.closest && t.closest('.scrim, .ios-alert-scrim, .toasts')); }).length);
+  await sleep(900);
+  const popEnd = await page.evaluate(() => { const m = document.querySelector('.modal'); const cs = getComputedStyle(m); return { op: +cs.opacity, tf: cs.transform, blur: cs.backdropFilter, held: document.documentElement.hasAttribute('data-sheet') }; });
+  const stillWhileOpen = await loopsBehind();
+  const side = Math.sign(ab.x + ab.width / 2 - 1472 / 2), fxN = parseFloat(pop && pop.fx), fyN = parseFloat(pop && pop.fy);
+  check('a sheet springs up out of the button that opened it (it leans towards that button)', !!pop && pop.anim === 'ios-pop-in' && Number.isFinite(fxN) && Number.isFinite(fyN) && Math.sign(fxN) === side && Math.sign(fyN) === Math.sign(ab.y + ab.height / 2 - 920 / 2), JSON.stringify({ pop, side }));
+  check('and settles square and fully visible', popEnd.op === 1 && (popEnd.tf === 'none' || /^matrix\(1, 0, 0, 1, 0, 0\)$/.test(popEnd.tf)), JSON.stringify(popEnd));
+  check('a sheet is blurred only when it is at rest: none while it moves, glass once it has landed', pop.blur === 'none' && /blur/.test(popEnd.blur), JSON.stringify({ moving: pop.blur, atRest: popEnd.blur }));
+  check('the page behind an open sheet stands still: its loops are paused, so the glass is not redrawn for nothing', popEnd.held && stillWhileOpen === 0, JSON.stringify({ held: popEnd.held, loops: stillWhileOpen }));
+  await page.keyboard.press('Escape'); await sleep(700);
+  const afterClose = { held: await page.evaluate(() => document.documentElement.hasAttribute('data-sheet')), loops: await loopsBehind() };
+  check('and they carry on when the sheet has gone', !afterClose.held && afterClose.loops > 0, JSON.stringify(afterClose));
+
+  // Settings: how clear the glass is, and which wallpaper Everyday has.
+  await go('settings', 1300);
+  const glassK = () => page.evaluate(() => document.documentElement.style.getPropertyValue('--glass-k'));
+  const savedGlass = () => page.evaluate(() => JSON.parse(localStorage.getItem('ca_settings_v3') || '{}').glass);
+  const sbAlpha = () => page.evaluate(() => { const m = /rgba?\(([^)]+)\)/.exec(getComputedStyle(document.querySelector('.sidebar')).backgroundColor); const p = m[1].split(',').map(Number); return p.length > 3 ? p[3] : 1; });
+  const slider = page.getByRole('slider', { name: /Glass/ });
+  check('Settings has a Glass slider from Clear to Tinted, resting at the usual 55', (await slider.count()) === 1 && (await slider.inputValue()) === '55' && (await glassK()).trim() === '0.55');
+  await slider.scrollIntoViewIfNeeded();
+  await slider.fill('0'); await sleep(150);
+  const aClear = await sbAlpha();
+  check('moving the slider changes the glass at once, before anything has been saved', (await glassK()).trim() === '0.00' && (await savedGlass()) === undefined);
+  await sleep(600);
+  check('the setting is saved a moment after the slider stops', (await savedGlass()) === 0);
+  await slider.fill('100'); await sleep(700);
+  const aTint = await sbAlpha();
+  check('tinted glass is deeper than clear glass: the sidebar fill gets more opaque', aClear < 0.4 && aTint > 0.75 && aTint > aClear + 0.4, JSON.stringify({ clear: aClear, tinted: aTint }));
+  await page.reload(); await page.waitForSelector('#root > :not(#boot)'); await sleep(800);
+  check('the glass is the same after a reload (it is set before the first screen draws)', (await glassK()).trim() === '1.00' && (await savedGlass()) === 100);
+  await go('settings', 1300);
+  const back = page.getByRole('button', { name: /Back to the usual/ });
+  await back.scrollIntoViewIfNeeded(); await back.click(); await sleep(700);
+  check('Back to the usual puts it back to 55 and the button goes', (await glassK()).trim() === '0.55' && (await savedGlass()) === 55 && (await back.count()) === 0);
+
+  const wallName = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--wp-name').trim());
+  await page.getByRole('button', { name: /^Night$/ }).scrollIntoViewIfNeeded(); await page.getByRole('button', { name: /^Night$/ }).click(); await sleep(1600);
+  check('choosing Night pins Everyday to the night sky', (await page.evaluate(() => document.documentElement.getAttribute('data-wallpaper'))) === 'night' && (await wallName()) === '"Night"' && (await page.evaluate(() => JSON.parse(localStorage.getItem('ca_settings_v3')).wallpaper)) === 'night');
+  await page.getByRole('button', { name: /^Follows the day$/ }).click(); await sleep(1600);
+  check('Follows the day lets the hour choose again', (await page.evaluate(() => document.documentElement.getAttribute('data-wallpaper'))) === null && (await page.evaluate(() => JSON.parse(localStorage.getItem('ca_settings_v3')).wallpaper)) === 'day');
+
+  // The story worlds keep their own wallpaper, and their pages have no Wallpaper switch.
+  await prep({ world: 'voyage' }); await go('settings', 1300);
+  const seaSky = await page.evaluate(() => ({ name: getComputedStyle(document.documentElement).getPropertyValue('--wp-name').trim(), night: document.documentElement.getAttribute('data-wallpaper') }));
+  check('the Ledger Seas have their own wallpaper: the sea at night', seaSky.name === '"Night at sea"' && seaSky.night === null, JSON.stringify(seaSky));
+  check('and Settings explains that there instead of offering the Night switch', (await page.getByRole('button', { name: /^Night$/ }).count()) === 0 && (await page.getByText(/keep their own night sea/).count()) === 1);
+  await prep({ world: 'default' });
+
+  // With the classic interface the glass slider has nothing to do, so it is not offered; the matte cards and the wallpaper are shared.
+  await prep({ ui: 'classic' }); await go('settings', 1300);
+  check('the classic interface has no Glass slider, but has the same wallpaper and matte cards', (await page.getByRole('slider', { name: /Glass/ }).count()) === 0 && (await page.evaluate(() => getComputedStyle(document.querySelector('.card')).backgroundImage)) === 'none' && (await page.evaluate(() => document.querySelector('.bg').getAttribute('data-sky'))) === 'on');
+  await prep();
+  }
 
   // ───────── 7. Layout scan: no sideways scrolling, no console errors, in every look and size ─────────
   console.log('Layout scan' + (full ? ' (every screen)' : ' (quick)'));

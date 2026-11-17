@@ -12,13 +12,14 @@ html[data-ui='ios'] .scrim::before {
 }
 html[data-ui='ios'] .scrim[data-closing='true']::before { animation: fade-out 340ms var(--ios-ease) both; }
 html[data-ui='ios'] .scrim[data-closing='drag']::before { animation: none; }
-@keyframes ios-sheet-in { from { transform: translate3d(0, var(--sheet-from, calc(50dvh + 50%)), 0); } }
-@keyframes ios-sheet-out { to { transform: translate3d(0, var(--sheet-from, calc(50dvh + 50%)), 0); } }
+/* A sheet is blurred only when it is at rest (styles/glass.css), so both ends of every move say backdrop-filter: none. */
+@keyframes ios-sheet-in { from { transform: translate3d(0, var(--sheet-from, calc(50dvh + 50%)), 0); -webkit-backdrop-filter: none; backdrop-filter: none; } to { -webkit-backdrop-filter: none; backdrop-filter: none; } }
+@keyframes ios-sheet-out { from { -webkit-backdrop-filter: none; backdrop-filter: none; } to { transform: translate3d(0, var(--sheet-from, calc(50dvh + 50%)), 0); -webkit-backdrop-filter: none; backdrop-filter: none; } }
 
 html[data-ui='ios'] .modal {
   border: 0; border-radius: 36px; corner-shape: squircle; touch-action: none;
   box-shadow: var(--shadow-pop), inset 0 0.5px 0 rgb(255 255 255 / 0.17);
-  animation: ios-sheet-in 560ms var(--ios-ease) backwards;
+  animation: ios-sheet-in 560ms var(--ios-ease) backwards, ios-sheet-settle 360ms var(--ios-ease) 560ms both;
 }
 html[data-ui='ios'] .scrim[data-closing='true'] .modal { animation: ios-sheet-out 360ms var(--ios-ease) both; }
 html[data-ui='ios'] .scrim[data-closing='drag'] .modal { animation: none; }
@@ -43,7 +44,7 @@ html[data-ui='ios'] .modal-close svg { width: 15px; height: 15px; }
 @media (max-width: 640px) {
   html[data-ui='ios'] .scrim { --sheet-from: 100%; }
   html[data-ui='ios'] .modal, html[data-ui='ios'] .modal--sm, html[data-ui='ios'] .modal--wide, html[data-ui='ios'] .modal--xl {
-    border-radius: 36px 36px 0 0; animation: ios-sheet-in 560ms var(--ios-ease) backwards;
+    border-radius: 36px 36px 0 0; animation: ios-sheet-in 560ms var(--ios-ease) backwards, ios-sheet-settle 360ms var(--ios-ease) 560ms both;
   }
   html[data-ui='ios'] .scrim[data-closing='true'] .modal { animation: ios-sheet-out 360ms var(--ios-ease) both; }
   html[data-ui='ios'] .scrim[data-closing='drag'] .modal { animation: none; }

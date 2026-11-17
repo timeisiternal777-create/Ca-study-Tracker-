@@ -10,7 +10,8 @@ function roll(inEl: HTMLElement, outEl: HTMLElement | null, text: string) {
   if (prev === text) return;
   inEl.textContent = text;
   if (!inEl.dataset.ready) { inEl.dataset.ready = '1'; return; }
-  if (!outEl || document.documentElement.dataset.motion === 'still' || document.documentElement.dataset.reduceMotion === 'true') return;
+  // No roll while a sheet is open (data-sheet, see lib/ui.ts holdPage): behind a blurred sheet every frame of it would redo the blur, once a second for nothing anyone sees.
+  if (!outEl || document.documentElement.dataset.motion === 'still' || document.documentElement.dataset.reduceMotion === 'true' || document.documentElement.hasAttribute('data-sheet')) return;
   outEl.textContent = prev;
   outEl.animate([{ opacity: 1, transform: 'translate3d(0,0,0)' }, { opacity: 0, transform: 'translate3d(0,-42%,0)' }], { duration: 300, easing: 'cubic-bezier(0.4, 0, 0.2, 1)', fill: 'both' });
   inEl.animate([{ opacity: 0, transform: 'translate3d(0,42%,0)' }, { opacity: 1, transform: 'none' }], { duration: 400, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });

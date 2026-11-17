@@ -1,0 +1,232 @@
+/* ═════════════════════════ v8: the wallpaper, the matte content layer, the glass control layer ═════════════════════════
+   This file loads last and settles three questions that earlier versions answered all at once, on every surface:
+
+     wallpaper   one calm field of colour behind everything (lib/sky.ts paints it; the `.bg` rule below is the same picture in CSS, shown until
+                 the canvas is ready). Nothing on it moves, and nothing translucent sits on it that has to be read.
+     content     cards and the text on them. Matte: a tinted fill, one hairline, a lit top edge, no gradient wash, no glow. Text colours were chosen
+                 against the brightest wallpaper at every hour of the day (scripts/test.mjs checks them).
+     controls    glass, and only here: the sidebar, the top bar and its buttons, the segmented controls, the tab bar, sheets, alerts, toasts. Glass is
+                 what floats above content, so it is the one layer that blurs it. Settings → Look and feel → Glass sets how clear or tinted it is
+                 (`--glass-k`, 0 clear to 1 tinted).
+
+   Colours, text and cards apply to both interfaces. Glass, motion and the finger highlight apply to the iOS interface only. */
+
+@property --gl { syntax: '<number>'; inherits: false; initial-value: 0; }
+
+/* ───────── 1. The wallpaper in CSS ─────────
+   Same picture as lib/wallpaperPaint.ts: the sky gradient, two pools of light that fall away like the canvas's, soft dark corners. The --wp-* values
+   are set by lib/sky.ts (applySkyVars) before the first paint; the fallbacks are the night sky. */
+html { background: var(--wp-top, var(--bg-0)); }
+.bg {
+  --pa: var(--wp-aa, 0.25); --pb: var(--wp-ba, 0.17);
+  background:
+    radial-gradient(ellipse 78% 78% at 50% 50%, transparent 0%, rgb(0 0 0 / 0.0128) 25%, rgb(0 0 0 / 0.051) 50%, rgb(0 0 0 / 0.1148) 75%, rgb(0 0 0 / 0.204) 100%),
+    radial-gradient(ellipse 62% 80% at 94% -4%,
+      rgb(var(--wp-b-rgb, var(--a2-rgb)) / var(--pb)) 0%, rgb(var(--wp-b-rgb, var(--a2-rgb)) / calc(var(--pb) * 0.74)) 22%,
+      rgb(var(--wp-b-rgb, var(--a2-rgb)) / calc(var(--pb) * 0.36)) 50%, rgb(var(--wp-b-rgb, var(--a2-rgb)) / calc(var(--pb) * 0.1)) 76%, transparent 100%),
+    radial-gradient(ellipse 78% 95% at 8% 102%,
+      rgb(var(--wp-a-rgb, var(--a-rgb)) / var(--pa)) 0%, rgb(var(--wp-a-rgb, var(--a-rgb)) / calc(var(--pa) * 0.74)) 22%,
+      rgb(var(--wp-a-rgb, var(--a-rgb)) / calc(var(--pa) * 0.36)) 50%, rgb(var(--wp-a-rgb, var(--a-rgb)) / calc(var(--pa) * 0.1)) 76%, transparent 100%),
+    linear-gradient(180deg, var(--wp-top, var(--bg-0)) 0%, var(--wp-mid, var(--bg-1)) 50%, var(--wp-bot, var(--bg-2)) 100%);
+}
+.bg[data-sky='on'] { background: none; }
+
+/* ───────── 2. Text and card colours (both interfaces) ─────────
+   Text is neutral and light, a little warmer in the Ledger Seas and a little lilac in Lanternfell. The cards are the colour of the world at 72 %. */
+:root { --tx-0: #f6f7fb; --tx-1: #cdd1dd; --tx-2: #a9aebf; --tx-3: #7c8194; --card-rgb: 36 40 56; --card-a: 0.72; }
+:root[data-world='voyage'] { --tx-0: #f6f0de; --tx-1: #d6d9cc; --tx-2: #a9bbb4; --tx-3: #7e918a; --card-rgb: 26 44 52; }
+:root[data-world='academy'] { --tx-0: #f5f1ff; --tx-1: #d8d3f0; --tx-2: #b1aad2; --tx-3: #8f88b4; --card-rgb: 40 34 62; }
+
+html[data-ui] {
+  --card-bg: rgb(var(--card-rgb) / var(--card-a));
+  --shadow-card: inset 0 0.5px 0 rgb(255 255 255 / 0.075), 0 1px 2px rgb(0 0 0 / 0.22), 0 18px 36px -22px rgb(0 0 0 / 0.55);
+}
+
+/* ───────── 3. Glass: how clear or tinted it is ─────────
+   --glass-k is 0 (clear) to 1 (tinted). The numbers are lib/wallpaper.ts glassLook(), which the tests keep in step with this block. */
+html[data-ui='ios'] {
+  --glass-k: 0.55;
+  --glass-rgb: 18 22 40;
+  --glass-a: calc(0.34 + 0.56 * var(--glass-k));
+  --glass-a-solid: calc(0.62 + 0.36 * var(--glass-k));
+  --glass-a-panel: calc(0.3 + 0.54 * var(--glass-k));
+  --sheet-a: calc(0.74 + 0.24 * var(--glass-k));
+  /* A sheet in motion is not blurred (see section 5), so its tint is heavier while it moves: nothing behind it shows sharp. */
+  --sheet-hush: rgb(var(--glass-rgb) / min(0.97, calc(var(--sheet-a) + 0.18)));
+  --glass-blur: calc(14px + 16px * var(--glass-k));
+  --glass-sat: calc(1.85 - 0.5 * var(--glass-k));
+  --glass-bg: rgb(var(--glass-rgb) / var(--glass-a));
+  --glass-bg-solid: rgb(var(--glass-rgb) / var(--glass-a-solid));
+  --panel-bg: rgb(var(--glass-rgb) / var(--glass-a-panel));
+  --glass-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  /* Sheets and alerts blur a little more than the bars: they hold text and forms. They only blur while they are at rest (see section 5). */
+  --sheet-filter: blur(calc(var(--glass-blur) + 10px)) saturate(var(--glass-sat));
+  /* The edge of a piece of glass: a bright lip on the top and left where the light lands, a faint one on the far side, and a soft glow just inside. */
+  --glass-rim:
+    inset 0 0.5px 0 rgb(255 255 255 / 0.42), inset 0.5px 0 0 rgb(255 255 255 / 0.13), inset 0 -0.5px 0 rgb(255 255 255 / 0.06),
+    inset 0 0 18px -7px rgb(255 255 255 / 0.12), 0 0 0 0.5px rgb(255 255 255 / 0.1);
+}
+html[data-ui='ios'][data-world='voyage'] { --glass-rgb: 4 22 30; }
+html[data-ui='ios'][data-world='academy'] { --glass-rgb: 10 8 32; }
+
+/* A device that asks for less transparency, or a motion level of "still" (a slow device): glass is nearly solid and nothing is blurred. */
+@media (prefers-reduced-transparency: reduce) {
+  html[data-ui='ios'] { --glass-a: 0.95; --glass-a-solid: 0.98; --glass-a-panel: 0.96; --sheet-a: 0.99; --glass-filter: none; --sheet-filter: none; }
+}
+html[data-ui='ios'][data-motion='still'] { --glass-a: 0.88; --glass-a-solid: 0.96; --glass-a-panel: 0.9; --sheet-a: 0.97; --glass-filter: none; --sheet-filter: none; }
+
+/* ───────── 4. Content: matte cards ───────── */
+html[data-ui] .card { background: var(--card-bg); }
+html[data-ui] .card--accent { background: var(--card-bg); border-color: rgb(var(--ac-rgb, var(--a-rgb)) / 0.26); }
+html[data-ui] .card--glow::before { display: none; }
+html[data-ui][data-world] .card { border-color: var(--line); }
+html[data-ui][data-world] .card--accent { border-color: rgb(var(--ac-rgb, var(--a-rgb)) / 0.26); }
+html[data-ui] .card--interactive { transition: transform var(--t-med) var(--ease), border-color var(--t-med), background-color var(--t-med); }
+@media (hover: hover) { html[data-ui] .card--interactive:hover { background: rgb(var(--card-rgb) / calc(var(--card-a) + 0.1)); } }
+
+/* The text that sits straight on the wallpaper (page titles, their sentence, section titles) is one step lighter than it is on a card. */
+html[data-ui] .page-head p { color: var(--tx-1); }
+
+/* Stat cards: the icon is a symbol in the card's colour, set before the label, not a coloured box in the corner. */
+html[data-ui] .stat-top { justify-content: flex-start; gap: 8px; }
+html[data-ui] .stat-icon { order: -1; width: auto; height: auto; padding: 0; border: 0; border-radius: 0; background: none; }
+html[data-ui] .stat-icon svg { width: 19px; height: 19px; }
+html[data-ui] .stat-label { font-weight: 600; }
+
+/* Progress: one solid colour, no gradient. */
+html[data-ui] .bar > i { background: var(--ac, var(--a)); }
+html[data-ui] .bar { background: rgb(255 255 255 / 0.1); }
+
+/* Banners and call-outs: a flat tint of the colour, no gradient and no outline. */
+html[data-ui] .banner { background: rgb(var(--a-rgb) / 0.13); border-color: transparent; }
+html[data-ui] .callout { background: rgb(var(--ac-rgb, var(--a-rgb)) / 0.11); border-color: transparent; }
+
+/* The month heading that stays at the top of the logbook while its days scroll under it is a little scroll-edge of its own: a tint that fades out below.
+   It is not blurred: a blurred layer over a scrolling list is redrawn on every frame, and a tint does the same job here. */
+html[data-ui='ios'] .lg-month {
+  background: linear-gradient(180deg, rgb(var(--card-rgb) / 0.97) 0, rgb(var(--card-rgb) / 0.92) 66%, rgb(var(--card-rgb) / 0) 100%);
+  -webkit-backdrop-filter: none; backdrop-filter: none; -webkit-mask-image: none; mask-image: none;
+}
+/* The chart tooltip is a small card. */
+html[data-ui] .ch-tip { background: rgb(var(--card-rgb) / 0.97); border-color: var(--line-2); }
+
+/* ───────── 5. Controls: glass ───────── */
+
+/* The sidebar is edge to edge (iPadOS 27): it fills the left side of the screen, top to bottom, and the wallpaper shows through it. It is not blurred:
+   what is behind it never moves, so a blur would show nothing a tint does not. */
+@media (min-width: 1101px) {
+  html[data-ui='ios'] .sidebar {
+    top: 0; height: 100dvh; margin: 0; padding: 22px 14px 14px; border: 0; border-radius: 0;
+    background: var(--panel-bg);
+    box-shadow: inset -0.5px 0 0 rgb(255 255 255 / 0.12), 14px 0 44px -22px rgb(0 0 0 / 0.55);
+  }
+}
+
+/* The top bar is clear until content scrolls under it. It then turns to glass whose lower edge dissolves into the page: there is no line to cross. */
+html[data-ui='ios'] .topbar-glass {
+  inset: 0 0 -24px 0;
+  background: linear-gradient(180deg, rgb(var(--glass-rgb) / var(--glass-a)) 0%, rgb(var(--glass-rgb) / calc(var(--glass-a) * 0.9)) 58%, rgb(var(--glass-rgb) / calc(var(--glass-a) * 0.5)) 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - 24px), transparent 100%); mask-image: linear-gradient(180deg, #000 0, #000 calc(100% - 24px), transparent 100%);
+  box-shadow: none;
+}
+
+/* The buttons in the bar are small pieces of glass of their own: a tint, a lit rim and a shadow. They do not blur what is behind them. The bar already
+   does, and a blur laid over a blur is the most expensive thing glass can ask of the browser. (Inside cards the same buttons stay plain fills.) */
+html[data-ui='ios'] .topbar :is(.icon-btn, .xp-pill) {
+  background-color: rgb(var(--glass-rgb) / calc(var(--glass-a) * 0.9));
+  box-shadow: var(--glass-rim), 0 8px 18px -10px rgb(0 0 0 / 0.6);
+}
+@media (hover: hover) { html[data-ui='ios'] .topbar :is(.icon-btn, .xp-pill):hover { background-color: rgb(var(--glass-rgb) / calc(var(--glass-a) * 0.9 + 0.08)); } }
+html[data-ui='ios'] .topbar .icon-btn[data-attn='true']::after { box-shadow: 0 0 0 2px rgb(var(--glass-rgb) / 0.9); }
+
+/* Pressing a piece of glass lifts it towards you (it grows a little), the way iOS glass does; pressing content shrinks it. */
+html[data-ui='ios'] .topbar :is(.icon-btn, .xp-pill) { --press: 1.07; }
+html[data-ui='ios'] :is(.nav-item, .sect-tab, .bn-item) { --press: 0.985; }
+
+/* The selection in the sidebar and the segmented controls: a lighter piece of glass. */
+html[data-ui='ios'] .nav-glide, html[data-ui='ios'] .sidebar-foot .nav-item[aria-current='page'] {
+  background: rgb(var(--a-rgb) / 0.2); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.3), inset 0 -0.5px 0 rgb(255 255 255 / 0.06), 0 4px 14px -8px rgb(0 0 0 / 0.5);
+}
+html[data-ui='ios'] .seg, html[data-ui='ios'] .sect-tabs { background: rgb(var(--glass-rgb) / 0.5); box-shadow: inset 0 0.5px 1px rgb(0 0 0 / 0.3), inset 0 0 0 0.5px rgb(255 255 255 / 0.06); }
+html[data-ui='ios'] .seg::before, html[data-ui='ios'] .sect-glide {
+  background: rgb(255 255 255 / 0.17);
+  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.4), inset 0 -0.5px 0 rgb(0 0 0 / 0.18), 0 2px 10px rgb(0 0 0 / 0.3);
+}
+
+/* The tab bar of a phone or a tablet held upright. */
+@media (max-width: 1100px) {
+  html[data-ui='ios'] .bottom-nav { box-shadow: var(--glass-rim), 0 22px 44px -18px rgb(0 0 0 / 0.85); }
+  html[data-ui='ios'] .bn-glide::after { background: rgb(255 255 255 / 0.14); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.32), 0 4px 14px -6px rgb(0 0 0 / 0.5); }
+}
+
+/* Sheets are glass too, tinted more than the bars because they hold text and forms.
+   Blur is the costly part of glass, and the part nobody can see while a sheet is moving, so a sheet is blurred only when it is at rest. While it moves
+   (its entrance and exit animations, or your finger) it has no blur and a heavier tint, so nothing behind it shows sharp; when it arrives the blur comes
+   on and the tint eases down to its resting value, which looks like the glass clearing. */
+html[data-ui='ios'] .modal {
+  background: rgb(var(--glass-rgb) / var(--sheet-a));
+  -webkit-backdrop-filter: var(--sheet-filter); backdrop-filter: var(--sheet-filter);
+  box-shadow: var(--shadow-pop), var(--glass-rim);
+  transition: background-color 200ms var(--ios-ease);
+}
+html[data-ui='ios'] .modal.is-dragging, html[data-ui='ios'] .scrim[data-closing] .modal { background: var(--sheet-hush); -webkit-backdrop-filter: none; backdrop-filter: none; }
+@keyframes ios-sheet-settle { from { background-color: var(--sheet-hush); } to { background-color: rgb(var(--glass-rgb) / var(--sheet-a)); } }
+html[data-ui='ios'] .modal-grab { background: rgb(255 255 255 / 0.34); }
+html[data-ui='ios'] .ios-alert {
+  background: var(--glass-bg-solid); -webkit-backdrop-filter: var(--sheet-filter); backdrop-filter: var(--sheet-filter);
+  box-shadow: var(--glass-rim), 0 34px 90px -24px rgb(0 0 0 / 0.85);
+}
+
+/* ───────── 6. The light that follows your finger ─────────
+   lib/glassTouch.ts puts the finger's place on the control it touches (--gx, --gy) and sets data-lit while it is down. --gl is a number the browser
+   can ease (it is registered above), so the light swells in at once and fades out slowly when you let go. */
+html[data-ui='ios'] {
+  --tr-rest: transform var(--ios-spring-press-d) var(--ios-spring-press), background-color 180ms, border-color 180ms, box-shadow 260ms, opacity 180ms, color 180ms, filter 180ms, --gl 480ms var(--ios-ease);
+  --tr-down: transform 80ms cubic-bezier(0.2, 0.7, 0.3, 1), background-color 80ms, border-color 80ms, box-shadow 120ms, opacity 80ms, color 80ms, filter 80ms, --gl 70ms linear;
+}
+html[data-ui='ios'] :is(.icon-btn, .xp-pill, .nav-item, .bn-item, .sect-tab, .seg > button, .stepper-btn, .tpill button, .modal-close) {
+  background-image: radial-gradient(circle 58px at var(--gx, 50%) var(--gy, 50%), rgb(255 255 255 / calc(0.26 * var(--gl))), rgb(255 255 255 / calc(0.07 * var(--gl))) 55%, transparent 100%);
+}
+html[data-ui='ios'] :is(.icon-btn, .xp-pill, .nav-item, .bn-item, .sect-tab, .seg > button, .stepper-btn, .tpill button, .modal-close)[data-lit] { --gl: 1; }
+
+/* ───────── 7. Motion ───────── */
+
+/* Moving between screens: the new one comes in as it would on an iPad. It fades up out of a slightly smaller size, with no sideways slide, and the old one
+   dims a moment sooner. */
+html[data-ui='ios'] .page-enter, html[data-ui='ios'][data-dir] .page-enter { animation: ios-page-in 560ms var(--ios-ease) backwards; }
+@keyframes ios-page-in { from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.988); } to { opacity: 1; transform: none; } }
+@supports (view-transition-name: none) {
+  html[data-ui='ios']::view-transition-old(page) { animation: ios-vt-out 180ms cubic-bezier(0.4, 0, 0.6, 1) both; }
+  @keyframes ios-vt-out { to { opacity: 0; transform: scale(0.994); } }
+}
+
+/* The cards on a screen arrive one after another, but quickly: eight steps of 22 ms, not twelve of 40. */
+html[data-ui='ios'] .stagger > *, html[data-ui='ios'] .rise { animation: ios-rise 560ms var(--ios-ease) backwards; }
+@keyframes ios-rise { from { opacity: 0; transform: translate3d(0, 10px, 0); } to { opacity: 1; transform: none; } }
+html[data-ui='ios'] .stagger > :nth-child(1) { animation-delay: 0ms; } html[data-ui='ios'] .stagger > :nth-child(2) { animation-delay: 22ms; }
+html[data-ui='ios'] .stagger > :nth-child(3) { animation-delay: 44ms; } html[data-ui='ios'] .stagger > :nth-child(4) { animation-delay: 66ms; }
+html[data-ui='ios'] .stagger > :nth-child(5) { animation-delay: 88ms; } html[data-ui='ios'] .stagger > :nth-child(6) { animation-delay: 110ms; }
+html[data-ui='ios'] .stagger > :nth-child(7) { animation-delay: 132ms; } html[data-ui='ios'] .stagger > :nth-child(8) { animation-delay: 154ms; }
+html[data-ui='ios'] .stagger > :nth-child(n + 9) { animation-delay: 176ms; }
+
+/* A sheet on a wide screen springs up out of the control that opened it (lib/ui.ts records where the last press was). On a phone it is still a bottom sheet. */
+@media (min-width: 641px) {
+  html[data-ui='ios'] .modal { animation: ios-pop-in var(--ios-spring-snappy-d) var(--ios-spring-snappy) backwards, ios-sheet-settle 360ms var(--ios-ease) var(--ios-spring-snappy-d) both; }
+  html[data-ui='ios'] .scrim[data-closing='true'] .modal { animation: ios-pop-out 240ms var(--ios-ease) both; }
+  html[data-ui='ios'] .scrim[data-closing='drag'] .modal { animation: none; }
+  @keyframes ios-pop-in { from { opacity: 0; transform: translate3d(var(--from-x, 0px), var(--from-y, 36px), 0) scale(0.86); -webkit-backdrop-filter: none; backdrop-filter: none; } 24% { opacity: 1; } to { -webkit-backdrop-filter: none; backdrop-filter: none; } }
+  @keyframes ios-pop-out { from { -webkit-backdrop-filter: none; backdrop-filter: none; } to { opacity: 0; transform: translate3d(calc(var(--from-x, 0px) * 0.4), calc(var(--from-y, 36px) * 0.4), 0) scale(0.94); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+}
+
+/* Nothing on a screen pulses or sweeps by itself in this interface: no floating dial, no halo behind the main button, no glint across cards. */
+html[data-ui='ios'] .radar, html[data-ui='ios'] .xp-ic svg { animation: none; }
+html[data-ui='ios'] .cta-aura, html[data-ui='ios'] .hero-dial::before, html[data-ui='ios'] .sheen::after { display: none; }
+
+/* Today's square in the study-year grid keeps its ring, still. */
+html[data-ui='ios'] .hm-cell.is-today::after { animation: none; opacity: 0.85; transform: none; }
+
+/* ───────── 8. When the person asked for less ───────── */
+html[data-reduce-motion='true'] :is(.stagger > *, .rise, .page-enter) { animation-duration: 0.001ms; animation-delay: 0ms; }
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui='ios'] .modal, html[data-ui='ios'] .scrim[data-closing='true'] .modal { animation-duration: 0.001ms; animation-delay: 0ms; }
+}

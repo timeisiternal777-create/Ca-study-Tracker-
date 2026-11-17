@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { LuBell, LuCheck, LuCircleHelp, LuCompass, LuDatabaseBackup, LuFileText, LuGraduationCap, LuInfo, LuPalette, LuRocket, LuShieldCheck, LuSmartphone, LuTimer, LuTriangleAlert, LuUser } from 'react-icons/lu';
 import './settings.css';
-import { Button, Callout, Card, CardHead, Chip, Field, Input, PageHeader, Segmented, Stepper, Switch, Tag, useConfirm, useToast } from '../../components/ui';
+import { Button, Callout, Card, CardHead, Chip, Field, Input, PageHeader, Range, Segmented, Stepper, Switch, Tag, useConfirm, useToast } from '../../components/ui';
 import { LEVELS } from '../../config/curriculum';
 import { useLevelConfig } from '../../context/LevelContext';
 import { useStudy } from '../../context/StudyContext';
@@ -17,11 +17,14 @@ import type { Level, ThemeId } from '../../types';
 import { useReducedMotion } from '../../hooks/useMedia';
 import { useMotionLevel } from '../../lib/motion';
 import { sfx } from '../../lib/sfx';
+import { applyGlass } from '../../lib/look';
+import { currentSky } from '../../lib/sky';
+import { GLASS_DEFAULT, normaliseGlass } from '../../lib/wallpaper';
 import { AutoReportSection, BackupSection, DangerSection, ReportsSection, Row } from './data';
 import { SoundSettings } from './SoundSettings';
 import { WorldPicker } from '../../world/WorldPicker';
 
-const APP_VERSION = '7.0.0';
+const APP_VERSION = '8.0.0';
 
 const SECTIONS: { id: string; label: string; icon: ReactNode }[] = [
   { id: 'profile', label: 'Profile', icon: <LuUser aria-hidden /> },
@@ -177,9 +180,55 @@ function InterfaceRow() {
   const { settings, updateSettings } = useStudy();
   const ios = settings.ui !== 'classic';
   return (
-    <Row stack title="Interface" desc="iOS gives you springs that follow your finger, glass bars that clear as you scroll, a floating tab bar, large titles, switches you can drag and sheets you can pull down to dismiss. Classic is the look the app had before.">
+    <Row stack title="Interface" desc="iOS gives you springs that follow your finger, an edge-to-edge glass sidebar, a top bar whose glass fades into the page as you scroll, large titles, switches you can drag and sheets you can pull down to dismiss. Classic is the look the app had before.">
       <Segmented<'ios' | 'classic'> label="Interface" value={ios ? 'ios' : 'classic'} onChange={(v) => { updateSettings({ ui: v }); sfx.haptic('light'); }}
         options={[{ value: 'ios', label: 'iOS' }, { value: 'classic', label: 'Classic' }]} />
+    </Row>
+  );
+}
+
+/** How clear or tinted the glass is. The sidebar, the top bar and the sheets change as the slider moves, so they are the preview. */
+function GlassRow() {
+  const { settings, updateSettings } = useStudy();
+  const saved = normaliseGlass(settings.glass);
+  const [k, setK] = useState(saved);
+  const latest = useRef(k); latest.current = k;
+  const savedRef = useRef(saved); savedRef.current = saved;
+  const save = useRef(updateSettings); save.current = updateSettings;
+  // A restored backup or another tab can change the saved value under us.
+  useEffect(() => { setK(saved); }, [saved]);
+  // The look follows the slider at once; the setting is written a moment after it stops (and when leaving the screen), not on every step of a drag.
+  useEffect(() => {
+    applyGlass(k);
+    if (k === savedRef.current) return;
+    const t = window.setTimeout(() => save.current({ glass: k }), 240);
+    return () => window.clearTimeout(t);
+  }, [k]);
+  useEffect(() => () => { if (latest.current !== savedRef.current) save.current({ glass: latest.current }); }, []);
+  return (
+    <Row stack title="Glass" desc="How see-through the sidebar, the bars and the sheets are. Clear lets the wallpaper show through them. Tinted keeps them calmer and easier to read.">
+      <div className="st-glass">
+        <span className="t-small" aria-hidden="true">Clear</span>
+        <Range value={k} min={0} max={100} step={1} label="Glass, from clear to tinted" onChange={setK} />
+        <span className="t-small" aria-hidden="true">Tinted</span>
+      </div>
+      {k !== GLASS_DEFAULT ? <div style={{ marginTop: 8 }}><Button size="sm" variant="ghost" onClick={() => setK(GLASS_DEFAULT)}>Back to the usual</Button></div> : null}
+    </Row>
+  );
+}
+
+/** The everyday wallpaper follows the hour of the day, or stays on the night sky. The themed worlds keep their own. */
+function WallpaperRow() {
+  const { settings, updateSettings } = useStudy();
+  const world = settings.worldTheme ?? 'default';
+  if (world !== 'default') {
+    return <Row title="Wallpaper" desc={world === 'voyage' ? 'The Ledger Seas keep their own night sea behind the app.' : 'Lanternfell keeps the school on its crag behind the app.'} />;
+  }
+  const mode = settings.wallpaper === 'night' ? 'night' : 'day';
+  return (
+    <Row stack title="Wallpaper" desc={mode === 'day' ? `Follows the time of day, a little at a time. Right now it is ${currentSky().name.toLowerCase()}.` : 'Stays on the night sky whatever the time.'}>
+      <Segmented<'day' | 'night'> label="Wallpaper" value={mode} onChange={(v) => updateSettings({ wallpaper: v })}
+        options={[{ value: 'day', label: 'Follows the day' }, { value: 'night', label: 'Night' }]} />
     </Row>
   );
 }
@@ -192,7 +241,9 @@ function LookSection() {
     <Card>
       <CardHead icon={iconTile('gold', <LuPalette />)} title="Look and feel" sub="Pick the interface and a world, then the colour the whole app glows in." />
       <InterfaceRow />
+      {settings.ui !== 'classic' ? <GlassRow /> : null}
       <WorldPicker />
+      <WallpaperRow />
       <div style={{ height: 6 }} />
       <p className="t-small dim" style={{ margin: '0 0 10px' }}>{settings.worldTheme === 'voyage' ? 'Accent colour (the Voyage world keeps its lantern gold; your choice comes back in the everyday look)' : settings.worldTheme === 'academy' ? 'Accent colour (Lanternfell keeps its lamp amber and takes your house colour as its second accent; your choice comes back in the everyday look)' : 'Accent colour'}</p>
       <div className="st-themes" role="radiogroup" aria-label="Accent colour">

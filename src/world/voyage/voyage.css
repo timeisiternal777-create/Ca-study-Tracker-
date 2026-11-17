@@ -149,8 +149,7 @@ html[data-motion='calm'] .gust, html[data-motion='calm'] .isle-glow, html[data-m
 html[data-motion='calm'] .ship-lantern-glow, html[data-motion='calm'] .ship-flag, html[data-motion='calm'] .ship-wake path, html[data-motion='calm'] .wave-row { animation: none; }
 html[data-motion='calm'] .wave-row .wave-track { animation-duration: 150s; }
 html[data-motion='calm'] .sea-tglow, html[data-motion='calm'] .sky-twinkle { opacity: 0.8; }
-html[data-motion='still'] .sea-stage *, html[data-motion='still'] .fin *, html[data-motion='still'] .sb *, html[data-motion='still'] .vcard * { animation: none !important; }
-html[data-motion='calm'] .sb-ship { animation: none; opacity: 0; }
+html[data-motion='still'] .sea-stage *, html[data-motion='still'] .fin *, html[data-motion='still'] .vcard * { animation: none !important; }
 html[data-motion='calm'] .vc-ship svg, html[data-motion='calm'] .vcard .wave-row { animation-duration: 8s; }
 html[data-motion='still'] .sea-ship, html[data-motion='still'] .lane-ship, html[data-motion='still'] .isle-fog, html[data-motion='still'] .ship-turn { transition-duration: 0.01s; }
 html[data-motion='still'] .sea-tglow, html[data-motion='still'] .sky-twinkle { opacity: 0.8; }
@@ -354,11 +353,6 @@ html[data-motion='still'] .isle-ring { opacity: 0.6; }
 }
 
 /* ═════════════════════ Behind the app, and the dashboard's sea card ═════════════════════ */
-.sb { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-.sb .wave-row path { stroke: rgb(160 232 226 / 0.11); }
-.sb .wave-row.w5 path { stroke: rgb(190 244 238 / 0.15); }
-.sb-ship { position: absolute; left: 0; bottom: 6%; width: 120px; aspect-ratio: 12 / 7; opacity: 0.6; will-change: transform; animation: vy-cross 170s linear infinite -48s; }
-.sb-ship svg { display: block; width: 100%; height: 100%; animation: vy-bob 5s ease-in-out infinite alternate; transform-origin: 50% 90%; }
 @keyframes vy-cross { from { transform: translate3d(-130%, 0, 0); } to { transform: translate3d(calc(100vw + 30%), 0, 0); } }
 
 .dash > .vcard { grid-column: 1 / -1; position: relative; overflow: hidden; background: #06141d; }

@@ -1,17 +1,13 @@
-import { lazy, Suspense, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { createSky, type Sky } from '../../lib/sky';
 import { useMotionLevel } from '../../lib/motion';
 import { useWorldAttr } from '../../world';
-import { SeaBackdrop } from '../../world/SeaBackdrop';
-
-// Lanternfell's mist and fireflies, and its castle, are separate chunks: nobody downloads them unless that world is on.
-const AcademyBackdrop = lazy(() => import('../../world/academy/AcademyBackdrop'));
 
 /**
- * The living background. The sky canvas (lib/sky.ts) paints the whole still backdrop (colour, soft pools of light, a fine star field) and on top of it
- * two drifting pools of light, twinkling stars, floating dust and a rare shooting star; the motion governor decides how much of it runs. The stylesheet's
- * own copy of the backdrop is the fallback until the canvas has painted. A world may add a still picture to the canvas (Lanternfell's castle) or
- * small moving layers in front of it (waves, mist, fireflies).
+ * The wallpaper behind the whole app: one canvas (lib/sky.ts) holding a calm field of colour that follows the hour of the day, or the sea at night,
+ * or the school at night, with fine grain on top. Nothing on it moves. The stylesheet's own copy of the wallpaper (`.bg` in layout.css) is what shows
+ * until the canvas has painted. Lanternfell adds one still picture, the school on its crag, painted into the same canvas (world/academy/skyScene.tsx),
+ * which is a separate chunk that nobody downloads unless that world is on.
  */
 export function Backdrop() {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -33,7 +29,6 @@ export function Backdrop() {
   return (
     <div className="bg" aria-hidden>
       <canvas ref={ref} className="sky" />
-      {world === 'voyage' ? <SeaBackdrop /> : world === 'academy' ? <Suspense fallback={null}><AcademyBackdrop /></Suspense> : null}
     </div>
   );
 }

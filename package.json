@@ -1,6 +1,6 @@
 {
   "name": "ca-study-tracker",
-  "version": "7.0.0",
+  "version": "8.0.0",
   "private": true,
   "description": "CA exam study tracker — daily log, streaks, mocks, targets and rewards. Local-first PWA.",
   "type": "module",

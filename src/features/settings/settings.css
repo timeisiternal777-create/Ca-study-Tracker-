@@ -115,3 +115,8 @@
 .st-look-note { font-size: 12px; line-height: 1.35; color: var(--tx-2); }
 .st-page-note { margin-top: -4px; }
 @media (max-width: 560px) { .st-look { grid-template-columns: 1fr; } .st-look-opt { grid-template-columns: 72px 1fr; align-items: center; column-gap: 12px; } .st-look-sw { grid-row: span 2; height: 44px; } }
+
+/* The Glass slider: the word at each end, the slider between. */
+.st-glass { display: grid; grid-template-columns: auto minmax(180px, 360px) auto; align-items: center; gap: 14px; width: 100%; }
+.st-glass .t-small { color: var(--tx-2); white-space: nowrap; }
+@media (max-width: 640px) { .st-glass { grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; } }

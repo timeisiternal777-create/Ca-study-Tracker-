@@ -2,6 +2,8 @@ import { useMemo, useSyncExternalStore } from 'react';
 import './skin.css';
 import { useStudy } from '../context/StudyContext';
 import { normaliseWorld, wordsFor, type Words, type World } from './words';
+import { applyGlass, applyWallpaperMode } from '../lib/look';
+import { applySkyVars, currentSky } from '../lib/sky';
 
 export type { World, Words } from './words';
 export { BRAND, normaliseWorld } from './words';
@@ -17,10 +19,12 @@ export function useWorld(): { world: World; voyage: boolean; academy: boolean; w
 /** Set `<html data-world>` (and the student's house, once chosen) before the first paint, so a themed look does not flash in after the default one. */
 export function bootWorld() {
   const root = document.documentElement;
-  try {
-    const s = JSON.parse(localStorage.getItem('ca_settings_v3') || '{}');
-    root.setAttribute('data-world', normaliseWorld(s && s.worldTheme));
-  } catch { root.setAttribute('data-world', 'default'); }
+  let saved: { worldTheme?: unknown; glass?: unknown; wallpaper?: unknown } = {};
+  try { saved = JSON.parse(localStorage.getItem('ca_settings_v3') || '{}') || {}; } catch { saved = {}; }
+  root.setAttribute('data-world', normaliseWorld(saved.worldTheme));
+  // The glass and the wallpaper are part of the look, so they are set now too, not after the first screen has drawn.
+  applyGlass(saved.glass);
+  applyWallpaperMode(saved.wallpaper);
   // The house colour follows what is stored, now and whenever a backup is restored or another tab changes it. (Lanternfell's own store does the same once
   // its chunk has loaded, but on a screen that never loads it, such as Settings, nothing else would notice a restore.)
   const syncHouse = () => {
@@ -31,6 +35,8 @@ export function bootWorld() {
     } catch { /* no house yet */ }
   };
   syncHouse();
+  // The stylesheet's copy of the wallpaper (the .bg rule) uses these colours until the canvas has painted, so even the first frame has the right sky.
+  applySkyVars(currentSky());
   window.addEventListener('ca_data_restored', syncHouse);
   window.addEventListener('storage', (e) => { if (e.key === 'ca_academy_v1' || e.key === null) syncHouse(); });
 }

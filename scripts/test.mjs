@@ -11,6 +11,7 @@ const dir = await mkdtemp(path.join(tmpdir(), 'ca-test-'));
 const entry = path.join(dir, 'entry.ts');
 await (await import('node:fs/promises')).writeFile(entry, `
 export * from ${JSON.stringify(path.join(root, 'src/lib/stats.ts'))};
+export * from ${JSON.stringify(path.join(root, 'src/lib/wallpaper.ts'))};
 export * from ${JSON.stringify(path.join(root, 'src/lib/quests.ts'))};
 export * from ${JSON.stringify(path.join(root, 'src/lib/phases.ts'))};
 export * from ${JSON.stringify(path.join(root, 'src/lib/readiness.ts'))};
@@ -1266,6 +1267,153 @@ t('nothing borrowed from the famous school stories appears anywhere in src/ or p
   assert.ok(!rx.some(([, re]) => re.test('a diagonal stroke and a diagonal border')), 'the check ignores ordinary words');
   assert.deepEqual(hits, []);
 });
+
+console.log('Wallpaper, text colours and glass');
+{
+  const glassCss = fsm.readFileSync(path.join(root, 'src/styles/glass.css'), 'utf8');
+  const tokensCss = fsm.readFileSync(path.join(root, 'src/styles/tokens.css'), 'utf8');
+  const skinCss = fsm.readFileSync(path.join(root, 'src/world/skin.css'), 'utf8');
+  const blockOf = (css, selector) => { const i = css.indexOf(selector + ' {'); assert.ok(i >= 0, 'no block for ' + selector); return css.slice(i, css.indexOf('}', i)); };
+  const tokenOf = (block, name) => { const m = new RegExp('--' + name + ':\\s*([^;]+);').exec(block); assert.ok(m, 'no --' + name + ' in ' + block.slice(0, 40)); return m[1].trim(); };
+  const triple = (s) => s.split(/\s+/).map(Number);
+  const partnersOfAccents = [...tokensCss.matchAll(/\[data-accent='\w+'\][^{]*\{[^}]*--a2-rgb:\s*(\d+) (\d+) (\d+)/g)].map((m) => [+m[1], +m[2], +m[3]]);
+  const housePartners = [...skinCss.matchAll(/\[data-house='\w+'\][^{]*\{[^}]*--a2-rgb:\s*(\d+) (\d+) (\d+)/g)].map((m) => [+m[1], +m[2], +m[3]]);
+  const worlds = {
+    default: { look: blockOf(glassCss, ':root'), glass: blockOf(glassCss, "html[data-ui='ios']"), skies: () => partnersOfAccents.flatMap((b) => Array.from({ length: 97 }, (_, i) => L.skyAt(i / 4, 'default', b))) },
+    voyage: { look: blockOf(glassCss, ":root[data-world='voyage']"), glass: blockOf(glassCss, "html[data-ui='ios'][data-world='voyage']"), skies: () => [L.skyAt(0, 'voyage', [111, 224, 207])] },
+    academy: { look: blockOf(glassCss, ":root[data-world='academy']"), glass: blockOf(glassCss, "html[data-ui='ios'][data-world='academy']"), skies: () => housePartners.map((b) => L.skyAt(0, 'academy', b)) },
+  };
+  const cardA = Number(tokenOf(worlds.default.look, 'card-a'));
+  const cardRgb = (w) => triple(tokenOf(worlds[w].look.includes('--card-rgb') ? worlds[w].look : worlds.default.look, 'card-rgb'));
+  const glassRgb = (w) => triple(tokenOf(worlds[w].glass.includes('--glass-rgb') ? worlds[w].glass : worlds.default.glass, 'glass-rgb'));
+  const txOf = (w, i) => L.hex(tokenOf(worlds[w].look.includes('--tx-' + i) ? worlds[w].look : worlds.default.look, 'tx-' + i));
+
+  t('there are six accent colours and four house colours to test against', () => { assert.equal(partnersOfAccents.length, 6); assert.equal(housePartners.length, 4); });
+
+  t('text on a card stays readable on every part of the wallpaper, at every hour, in every world and accent', () => {
+    for (const w of Object.keys(worlds)) {
+      const worst = [99, 99, 99], card = cardRgb(w), tx = [0, 1, 2].map((i) => txOf(w, i));
+      for (const sky of worlds[w].skies()) for (let ix = 0; ix <= 24; ix++) for (let iy = 0; iy <= 16; iy++) {
+        const bg = L.over(card, cardA, L.colourAt(sky, ix / 24, iy / 16));
+        for (let k = 0; k < 3; k++) worst[k] = Math.min(worst[k], L.contrast(tx[k], bg));
+      }
+      assert.ok(worst[0] >= 10.5, `${w}: primary text ${worst[0].toFixed(2)}`);
+      assert.ok(worst[1] >= 7.5, `${w}: secondary text ${worst[1].toFixed(2)}`);
+      assert.ok(worst[2] >= 5.2, `${w}: tertiary text ${worst[2].toFixed(2)}`);
+    }
+  });
+
+  t('titles and the sentence under them stay readable straight on the wallpaper', () => {
+    // Anywhere to the right of the menu: titles AAA, the sentence under a title AA. At the top of the screen, where page titles actually sit, the sentence has more room.
+    for (const w of Object.keys(worlds)) {
+      const worst = [99, 99], top = 99, tx = [0, 1].map((i) => txOf(w, i));
+      let topWorst = top;
+      for (const sky of worlds[w].skies()) for (let ix = 5; ix <= 24; ix++) for (let iy = 0; iy <= 16; iy++) {
+        const bg = L.colourAt(sky, ix / 24, iy / 16);
+        for (let k = 0; k < 2; k++) worst[k] = Math.min(worst[k], L.contrast(tx[k], bg));
+        if (iy <= 6) topWorst = Math.min(topWorst, L.contrast(tx[1], bg));
+      }
+      assert.ok(worst[0] >= 7, `${w}: titles ${worst[0].toFixed(2)}`);
+      assert.ok(worst[1] >= 4.5, `${w}: the sentence under a title ${worst[1].toFixed(2)}`);
+      assert.ok(topWorst >= 6.5, `${w}: the sentence under a title, at the top of the screen ${topWorst.toFixed(2)}`);
+    }
+  });
+
+  t('the sidebar stays readable with the glass at its clearest', () => {
+    const clear = L.glassLook(0).panel;
+    for (const w of Object.keys(worlds)) {
+      const worst = [99, 99], tx = [1, 2].map((i) => txOf(w, i)), glass = glassRgb(w);
+      for (const sky of worlds[w].skies()) for (let ix = 0; ix <= 6; ix++) for (let iy = 0; iy <= 16; iy++) {
+        const bg = L.over(glass, clear, L.colourAt(sky, (ix / 6) * 0.18, iy / 16));
+        for (let k = 0; k < 2; k++) worst[k] = Math.min(worst[k], L.contrast(tx[k], bg));
+      }
+      assert.ok(worst[0] >= 6.5, `${w}: menu text ${worst[0].toFixed(2)}`);
+      assert.ok(worst[1] >= 4.6, `${w}: menu captions ${worst[1].toFixed(2)}`);
+    }
+  });
+
+  t('every text colour is lighter than the one after it', () => {
+    for (const w of Object.keys(worlds)) { const l = [0, 1, 2, 3].map((i) => L.luminance(txOf(w, i))); assert.ok(l[0] > l[1] && l[1] > l[2] && l[2] > l[3], w); }
+  });
+
+  t('the glass numbers in the stylesheet are the ones glassLook() gives', () => {
+    const g = worlds.default.glass;
+    const calc = (name) => { const m = new RegExp('--' + name + ':\\s*calc\\(([\\d.]+)(?:px)? ([+-]) ([\\d.]+)(?:px)? \\* var\\(--glass-k\\)\\)').exec(g); assert.ok(m, name); return [Number(m[1]), m[2] === '+' ? Number(m[3]) : -Number(m[3])]; };
+    const close = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} vs ${b}`);
+    for (const [k, level] of [[0, 0], [1, 100], [0.55, 55]]) {
+      const look = L.glassLook(level), f = ([a, b]) => a + b * k;
+      close(f(calc('glass-a')), look.bg); close(f(calc('glass-a-solid')), look.bgSolid); close(f(calc('glass-a-panel')), look.panel);
+      close(f(calc('glass-blur')), look.blur); close(f(calc('glass-sat')), look.saturate);
+    }
+    assert.equal(Number(tokenOf(g, 'glass-k')), L.GLASS_DEFAULT / 100);
+  });
+
+  t('more tint means a deeper fill, a stronger blur and less colour boost', () => {
+    let prev = L.glassLook(0);
+    for (let v = 5; v <= 100; v += 5) { const x = L.glassLook(v); assert.ok(x.bg > prev.bg && x.bgSolid > prev.bgSolid && x.panel > prev.panel && x.blur > prev.blur && x.saturate < prev.saturate, 'step ' + v); prev = x; }
+    assert.ok(L.glassLook(100).bgSolid <= 1 && L.glassLook(100).bg <= 1);
+  });
+
+  t('the saved glass setting is always a whole number from 0 to 100', () => {
+    assert.equal(L.normaliseGlass(undefined), 55); assert.equal(L.normaliseGlass('x'), 55); assert.equal(L.normaliseGlass(NaN), 55);
+    assert.equal(L.normaliseGlass(-8), 0); assert.equal(L.normaliseGlass(140), 100); assert.equal(L.normaliseGlass(33.4), 33); assert.equal(L.normaliseGlass(0), 0);
+  });
+
+  t('the day wraps round at midnight without a seam', () => {
+    const a = L.skyAt(0, 'default', [156, 140, 255]), b = L.skyAt(24, 'default', [156, 140, 255]), c = L.skyAt(23.99, 'default', [156, 140, 255]);
+    for (const k of ['top', 'mid', 'bot', 'a']) for (let i = 0; i < 3; i++) { assert.equal(a[k][i], b[k][i]); assert.ok(Math.abs(a[k][i] - c[k][i]) <= 1, k); }
+  });
+
+  t('the sky never jumps: no point of the wallpaper changes by more than 1.5 in a minute', () => {
+    const at = (h) => { const s = L.skyAt(h, 'default', [156, 140, 255]); const out = []; for (const fx of [0.02, 0.08, 0.3, 0.6, 0.94]) for (const fy of [0, 0.3, 0.7, 1]) out.push(L.colourAt(s, fx, fy)); return out; };
+    let prev = at(0), worst = 0;
+    for (let m = 1; m <= 24 * 60; m++) {
+      const now = at(m / 60);
+      for (let p = 0; p < now.length; p++) for (let i = 0; i < 3; i++) worst = Math.max(worst, Math.abs(now[p][i] - prev[p][i]));
+      prev = now;
+    }
+    assert.ok(worst <= 1.5, 'largest step ' + worst.toFixed(3));
+  });
+
+  t('the sky has six named moments and always one of them', () => {
+    const seen = new Set();
+    for (let h = 0; h < 24; h += 0.25) { const n = L.skyAt(h, 'default', [156, 140, 255]).name; assert.ok(L.SKY_NAMES.includes(n), n); seen.add(n); }
+    assert.equal(seen.size, L.SKY_NAMES.length);
+    assert.equal(L.skyAt(2, 'default', [0, 0, 0]).name, 'Night'); assert.equal(L.skyAt(12.5, 'default', [0, 0, 0]).name, 'Daylight'); assert.equal(L.skyAt(17.75, 'default', [0, 0, 0]).name, 'Golden hour');
+  });
+
+  t('Night pins Everyday to the night sky, and the story worlds ignore the hour', () => {
+    const p = [156, 140, 255];
+    assert.deepEqual(L.skyAt(12.5, 'default', p, 'night').top, L.skyAt(0, 'default', p).top); assert.equal(L.skyAt(12.5, 'default', p, 'night').name, 'Night');
+    assert.deepEqual(L.skyAt(3, 'voyage', p).top, L.skyAt(15, 'voyage', p).top); assert.ok(L.skyAt(3, 'voyage', p).horizon > 0);
+    assert.deepEqual(L.skyAt(3, 'academy', [1, 2, 3]).b, [1, 2, 3]); assert.deepEqual(L.skyAt(3, 'academy', p).top, L.skyAt(15, 'academy', p).top);
+  });
+
+  t('nothing on the wallpaper is bright: the lightest point of any sky is dark', () => {
+    for (const w of Object.keys(worlds)) for (const sky of worlds[w].skies().filter((_, i) => i % 7 === 0)) assert.ok(L.brightest(sky).lum < 0.09, `${w} ${sky.name} ${L.brightest(sky).lum.toFixed(4)}`);
+  });
+
+  t("the stylesheet's own copy of the wallpaper is laid out like the painter's", () => {
+    const bg = blockOf(glassCss, '.bg');
+    const sky = L.skyAt(12.5, 'default', [156, 140, 255]);
+    const pct = (v) => Math.round(v * 100);
+    assert.ok(bg.includes(`ellipse ${pct(L.POOL_A.rx)}% ${pct(L.POOL_A.ry)}% at ${pct(sky.ax)}% ${pct(sky.ay)}%`), 'pool A');
+    assert.ok(bg.includes(`ellipse ${pct(L.POOL_B.rx)}% ${pct(L.POOL_B.ry)}% at ${pct(sky.bx)}% ${pct(sky.by)}%`), 'pool B');
+    for (const [d, v] of L.POOL_STOPS.slice(1, -1)) for (const pool of ['pa', 'pb']) assert.ok(bg.includes(`calc(var(--${pool}) * ${v})) ${Math.round(d * 100)}%`), `${pool} stop ${d}`);
+    const vig = [...bg.matchAll(/rgb\(0 0 0 \/ ([\d.]+)\) (\d+)%/g)].map((m) => [Number(m[2]) / 100, Number(m[1])]);
+    assert.equal(vig.length, 4);
+    const stops = [[0.25, 0.0375], [0.5, 0.15], [0.75, 0.3375], [1, 0.6]];
+    for (let i = 0; i < 4; i++) { assert.equal(vig[i][0], stops[i][0]); assert.ok(Math.abs(vig[i][1] - sky.vignette * stops[i][1]) < 0.0006, 'vignette ' + stops[i][0]); }
+  });
+
+  t('the page is already the colour of the wallpaper before any script has run', () => {
+    const html = fsm.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const boot = /html,body\{margin:0;background:(#[0-9a-f]{6})/.exec(html)?.[1];
+    assert.ok(boot, 'no boot colour');
+    for (let h = 0; h < 24; h += 0.5) assert.ok(L.contrast(L.hex(boot), L.skyAt(h, 'default', [156, 140, 255]).top) < 1.2, 'boot colour against the sky at ' + h);
+    for (const w of ['voyage', 'academy']) assert.ok(L.contrast(L.hex(boot), L.skyAt(0, w, [156, 140, 255]).top) < 1.2, w);
+  });
+}
 
 console.log(`\n${n} checks passed${process.exitCode ? ', some failed' : ''}`);
 // The sound engine keeps a message channel open (a browser scheduling trick), which would keep node running after the last check.

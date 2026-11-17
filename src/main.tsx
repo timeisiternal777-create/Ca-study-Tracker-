@@ -10,6 +10,7 @@ import { ToastProvider, ConfirmProvider } from './components/ui';
 import { registerServiceWorker } from './lib/pwa';
 import { sfx } from './lib/sfx';
 import { installFx } from './lib/fx';
+import { installGlassTouch } from './lib/glassTouch';
 import { startMotion } from './lib/motion';
 import { bootWorld } from './world';
 import { bootUi } from './lib/ui';
@@ -17,11 +18,13 @@ import './styles/motion.css';
 import './styles/ambient.css';
 import './styles/ios.css';
 import './styles/ios-overlays.css';
+import './styles/glass.css';
 
 bootUi();
 bootWorld();
 sfx.attach();
 installFx();
+installGlassTouch();
 startMotion();
 const root = document.getElementById('root')!;
 createRoot(root).render(

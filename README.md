@@ -1,10 +1,12 @@
-# CA Study Tracker (v7)
+# CA Study Tracker (v8)
 
 A study tracker for CA Foundation, Intermediate and Final students. It keeps a daily study log, streaks and XP, mock test scores, a syllabus schedule, a marks target sheet and PDF reports, and it comes with **Blip**, a small helper who shows you around and tells you what to do next. It is a local-first PWA: everything is stored in the browser, there is no account and no server.
 
 This is a rebuild of the AI Studio export `87b663fc-ca-inter-2026-study-tracker`. It keeps every feature of the original and changes how it looks, feels and works.
 
-**v7 adds a third story world, Lanternfell Academy, and redraws the old pictures in far more detail.** Lanternfell turns your study into a school of lamps: a building for every paper, a Choosing that places you in one of four houses from your real study record, and a Charter Night when you clear a year. It sits beside The Ledger Seas and the everyday look, switched in Settings, Look and feel, **World**, and changes only words and pictures, never your data or your XP. The islands of the Ledger Seas, Blip, the app icon and the world pictures were all redrawn so that nothing is a recoloured template any more.
+**v8 rebuilds the background and the colour system under every screen, and makes the interface behave like the newest iOS and iPadOS.** The old background was busy (stars, dust and sparkle that showed through every card), and that made everything laid over it look generic. Now there is one calm wallpaper that follows the time of day, cards are flat and matte, and glass is kept for the controls that float above them (the menu, the top bar, sheets), with a Glass slider from Clear to Tinted in Settings. Screens, sheets and buttons move the way they do on an iPad.
+
+v7 added a third story world, Lanternfell Academy, and redrew the old pictures in far more detail. Lanternfell turns your study into a school of lamps: a building for every paper, a Choosing that places you in one of four houses from your real study record, and a Charter Night when you clear a year. It sits beside The Ledger Seas and the everyday look, switched in Settings, Look and feel, **World**, and changes only words and pictures, never your data or your XP. The islands of the Ledger Seas, Blip, the app icon and the world pictures were all redrawn so that nothing is a recoloured template any more.
 
 v6 gave the whole app an iOS-style interface (real spring motion, sheets you drag away, frosted glass, large titles). It is on by default, and Settings, Look and feel, **Interface** puts the v5 look back at once. v5 added a study timer that fills in your log for you, motion that keeps going without slowing the app, and the optional world The Ledger Seas.
 
@@ -18,14 +20,35 @@ npm run dev        # http://localhost:3000 with live reload
 npm run build      # production build into dist/
 npm start          # serve dist/ on http://localhost:3000
 npm run typecheck  # tsc --noEmit
-npm test           # 191 checks: rewards, schedule, milestones, the timer, the Voyage and Lanternfell rules, island and building kinds, sound kits, the PDF engine and the iOS springs
-npm run e2e:ios    # 71 checks in a real browser: sheets, alerts, switches, toasts, the top bar, the whole Lanternfell walk-through and the layout of every screen in all three worlds (needs Playwright and Chromium; add -- --full for the full scan)
+npm test           # 206 checks: the wallpaper's colours and legibility, the glass numbers, rewards, schedule, milestones, the timer, the Voyage and Lanternfell rules, island and building kinds, sound kits, the PDF engine and the iOS springs
+npm run e2e:ios    # 102 checks in a real browser: the wallpaper and glass, sheets, alerts, switches, toasts, the top bar, the whole Lanternfell walk-through and the layout of every screen in all three worlds (needs Playwright and Chromium; add -- --full for the full scan)
 npm run fps        # frame-rate sampler: every screen at each animation level (add -- --world=voyage or -- --world=academy)
 npm run icons      # redraw public/icon.svg and the PNG icons from src/components/layout/Logo.tsx (needs Playwright and Chromium)
 npm run pdf-sample -- --theme=sky --page=a4   # write a sample report PDF (see below)
 ```
 
 Open the built app on your phone or tablet over your network, then use your browser's Install or Add to Home Screen option. It works offline after the first load.
+
+## What is new in v8
+
+**A calm wallpaper, flat cards, and glass only where it belongs.** Everything underneath is the same app; your data, rules and XP are untouched. The Classic interface (Settings, Look and feel, Interface) keeps its own look, but shares the new wallpaper and cards.
+
+* **The wallpaper.** One field of colour with two soft pools of light and a fine grain, drawn once into the canvas behind the app. Nothing on it moves and nothing on it is small enough to be mistaken for content. In the everyday look it follows the time of day (Night, First light, Morning, Daylight, Golden hour, Dusk), the way a weather app does. Settings, Look and feel, **Wallpaper** lets you keep it on Night instead. The Ledger Seas keep the sea at night and Lanternfell keeps the school at night, with the castle moved low on the left so the menu does not hide it.
+* **Content is matte.** A card is a flat tinted fill with a hairline and a lit top edge: no coloured wash, no glow. Stat icons are plain symbols instead of coloured boxes, and progress bars are one solid colour.
+* **Glass is for controls only**, as in the newest iOS: the menu, the top bar and its buttons, the segmented controls and section tabs, the phone tab bar, sheets, alerts and toasts. The menu now runs edge to edge down the left side of the screen. The top bar is clear until content scrolls under it, then turns to glass whose lower edge dissolves into the page.
+* **A Glass slider** (Settings, Look and feel) from Clear to Tinted, live as you drag it. **Back to the usual** puts it back to the middle.
+* **Motion that flows.** A new screen fades up out of a slightly smaller size, with no sideways slide, and its cards arrive 22 ms apart. On a tablet a sheet springs out of the button that opened it; you can still drag it away. Pressing a piece of glass makes it grow, and a spot of light follows your finger across it; pressing a card or a plain button makes it sink. The floating dial, the halo behind the main button, the glint across cards and the twinkling XP icon are gone in this interface (Blip, the flame and the radar's sweep still move).
+* **Cheaper glass.** Blur is the costly part of glass, so v8 spends it carefully: the top bar is one blur (its buttons are tinted, not blurred a second time); a sheet is blurred only when it is at rest and eases from a heavier tint into glass as it lands; and the page behind an open sheet stands still, which stopped the sheet redrawing its blur on every frame for the mascot and radar behind it. These came out of measuring, not guessing: an open sheet went from about 30 frames a second to a steady 60 in the test browser.
+
+Details, the numbers behind the colours and the rules for adding glass are in `docs/v8-design.md`.
+
+**What I could and could not check in v8**
+
+* **I cannot see it on your Moto Pad, hear it or feel it.** I checked what can be checked: 206 logic checks (15 of them new: every hour of the day, every world and every accent keeps text readable on a card over any part of the wallpaper, the sky never jumps, and the glass numbers in the stylesheet match the code); 102 checks in a real browser (the wallpaper, the edge-to-edge menu, matte cards, the top bar, the finger light, screen arrival, the 22 ms stagger, sheets springing out, blur only at rest, the Glass slider and the Night switch, and a scan of every screen in all three worlds, both interfaces and three widths with no sideways scrolling and no console errors). Whether it feels as fluid as an iPad is for you to judge.
+* **Smoothness was measured in a software-rendered 60 Hz test browser**, a harsh proxy for a tablet's graphics chip. Idle, every screen of all three worlds held 55 to 60 frames a second. Scrolling under the glass bar costs frames there (the browser blurs in software), and it costs the same in v7; on a real graphics chip that work is far cheaper. I have not run it on your tablet, so I cannot promise its 144 Hz.
+* **There is no Light appearance.** The interface is still dark only. A white interface is a real piece of work, not a switch: the stylesheets and components hold thousands of colours chosen for a dark ground. It would be the natural next step.
+* **The glass edge is not a true progressive blur.** iOS 26 blurs more strongly at the top of its scroll edge. A browser can only blur evenly, so the top bar's edge is an even blur that fades out.
+* **The wallpaper colours were chosen by calculation and by eye in screenshots**, not on your screen. If a time of day looks wrong to you, the colours are in `src/lib/wallpaper.ts` and a test will tell you if a change makes text hard to read.
 
 ## What is new in v7
 
@@ -286,7 +309,9 @@ src/
   lib/                     pure logic: stats, quests, readiness, phases, schedule, milestones,
                            assistant (Blip's rules), dates, storage, targets, backlog,
                            planAnalysis, manifest, xlsx, pdf, reportPdf, sfx (sound engine and haptics), fx (touch effects),
-                           spring (the spring maths, the rubber band, finger speed), ui (which interface is on), pageTitle
+                           spring (the spring maths, the rubber band, finger speed), ui (which interface is on, and holdPage), pageTitle,
+                           wallpaper and wallpaperPaint (the wallpaper's colours and how it is drawn), sky (the canvas), look (glass and wallpaper
+                           settings), glassTouch (the light under a finger)
   hooks/                   useDialog, useMedia, useSheetDrag (drag a sheet away), useSwipeAway (toasts)
   components/blip/         the Blip character (plain SVG shapes, CSS motion)
   components/game/         quest list and the celebration cards
@@ -299,11 +324,12 @@ src/
   world/                  the optional Ledger Seas world: words (menu and rank labels), skin.css (colours and fonts), the World picker,
                           crew/ (the six characters and their lines), voyage/ (sea chart, island and ship art in isles/, ending, rules in progress.ts, Voyage log PDF),
                           academy/ (Lanternfell: choosing and virtues, the Grounds map, Charter Night, school record PDF, art/ with the ten buildings, four crests, five characters and the castle scene)
-  styles/                  tokens, base, ui and layout CSS (a hand-written design system); ios.css (tokens, springs, glass, controls and
-                           navigation) and ios-overlays.css (sheets, alerts, toasts) apply only while <html data-ui="ios">
+  styles/                  tokens, base, ui and layout CSS (a hand-written design system); ios.css (tokens, springs, controls and
+                           navigation) and ios-overlays.css (sheets, alerts, toasts) apply only while <html data-ui="ios">; glass.css (v8, imported
+                           last) is the wallpaper's colours, the matte cards, the glass and the new motion
 scripts/                   build, dev, serve, icons, demo seed, logic tests, browser tests (e2e-ios.mjs), screenshot tool, frame-rate sampler (fps.mjs), sample report writer
 tools/ios/                 `node tools/ios/springs.mjs` prints the CSS spring curves that are pasted into styles/ios.css
-docs/                      v5-design.md, v6-design.md and v7-design.md: how the timer, the worlds and the iOS look were built, and what to know before adding big pictures, for whoever picks it up next
+docs/                      v5-design.md to v8-design.md: how the timer, the worlds and the iOS look were built, and what to know before adding big pictures, for whoever picks it up next
 tools/sfx/                 the sound designer (Python): `python3 tools/sfx/build_sfx.py` rebuilds all three kits in public/sfx (needs Python 3 with numpy and scipy, and ffmpeg)
 public/                    fonts, icons, manifest
 legacy/                    files from the old export that are no longer used
